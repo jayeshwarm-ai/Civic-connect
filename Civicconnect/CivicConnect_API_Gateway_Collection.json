@@ -1,0 +1,846 @@
+{
+  "info": {
+    "name": "CivicConnect API Gateway",
+    "description": "Complete API Gateway endpoints for CivicConnect microservices",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "🔐 Authentication",
+      "item": [
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"citizen@example.com\",\n  \"password\": \"password\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:9999/api/v1/auth/login",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "9999",
+              "path": ["api", "v1", "auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Validate Token",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:9999/api/v1/auth/validate",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "9999",
+              "path": ["api", "v1", "auth", "validate"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "👤 Citizen Management",
+      "item": [
+        {
+          "name": "Register Citizen",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"email\": \"john.doe@example.com\",\n  \"password\": \"SecurePassword123!\",\n  \"phone\": \"+1234567890\",\n  \"address\": \"123 Main St\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:9999/api/v1/citizens/register",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "9999",
+              "path": ["api", "v1", "citizens", "register"]
+            }
+          }
+        },
+        {
+          "name": "Get Citizen Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:9999/api/v1/citizens/{{citizenId}}",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "9999",
+              "path": ["api", "v1", "citizens", "{{citizenId}}"]
+            }
+          }
+        },
+        {
+          "name": "Update Citizen Profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"phone\": \"+1234567891\",\n  \"address\": \"124 Main St\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:9999/api/v1/citizens/{{citizenId}}",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "9999",
+              "path": ["api", "v1", "citizens", "{{citizenId}}"]
+            }
+          }
+        },
+        {
+          "name": "Upload Document",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": ""
+                },
+                {
+                  "key": "documentType",
+                  "value": "ID_PROOF",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "http://localhost:9999/api/v1/citizens/upload-document",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "9999",
+              "path": ["api", "v1", "citizens", "upload-document"]
+            }
+          }
+        },
+        {
+          "name": "Get Citizen Documents",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:9999/api/v1/citizens/{{userId}}/documents",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "9999",
+              "path": ["api", "v1", "citizens", "{{userId}}", "documents"]
+            }
+          }
+        },
+        {
+          "name": "Get Citizen Status",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:9999/api/v1/citizens/{{citizenId}}/status",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "9999",
+              "path": ["api", "v1", "citizens", "{{citizenId}}", "status"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "📝 Service Requests",
+      "item": [
+        {
+          "name": "Create Service Request",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"ROAD\",\n  \"description\": \"Big pothole on the main road\",\n  \"location\": \"Avadi\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:9999/api/v1/service-requests",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "9999",
+              "path": ["api", "v1", "service-requests"]
+            }
+          }
+        },
+        {
+          "name": "Get All Requests by Citizen ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:9999/api/v1/service-requests/citizen/{{citizenId}}",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "9999",
+              "path": ["api", "v1", "service-requests", "citizen", "{{citizenId}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Requests by Status (Officer Queue)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:9999/api/v1/service-requests?status=SUBMITTED",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "9999",
+              "path": ["api", "v1", "service-requests"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "SUBMITTED",
+                  "description": "SUBMITTED | ASSIGNED | IN_PROGRESS | RESOLVED | CLOSED"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Request by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:9999/api/v1/service-requests/{{requestId}}",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "9999",
+              "path": ["api", "v1", "service-requests", "{{requestId}}"]
+            }
+          }
+        },
+        {
+          "name": "Update Request Status",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"IN_PROGRESS\",\n  \"remarks\": \"Work in progress\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:9999/api/v1/service-requests/{{requestId}}",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "9999",
+              "path": ["api", "v1", "service-requests", "{{requestId}}"]
+            }
+          }
+        },
+        {
+          "name": "Assign Request to Officer",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"officerId\": \"{{officerId}}\",\n  \"priority\": \"HIGH\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:9999/api/v1/service-requests/{{requestId}}/assign",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "9999",
+              "path": ["api", "v1", "service-requests", "{{requestId}}", "assign"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "✅ Resolutions",
+      "item": [
+        {
+          "name": "Create Resolution",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"serviceRequestId\": \"{{requestId}}\",\n  \"resolutionDescription\": \"Road has been repaired\",\n  \"resolutionDate\": \"2026-04-23\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:9999/api/v1/resolutions",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "9999",
+              "path": ["api", "v1", "resolutions"]
+            }
+          }
+        },
+        {
+          "name": "Get Resolution by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:9999/api/v1/resolutions/{{resolutionId}}",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "9999",
+              "path": ["api", "v1", "resolutions", "{{resolutionId}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Resolution for Request",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:9999/api/v1/resolutions/request/{{requestId}}",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "9999",
+              "path": ["api", "v1", "resolutions", "request", "{{requestId}}"]
+            }
+          }
+        },
+        {
+          "name": "Update Resolution",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"resolutionDescription\": \"Road repair completed and verified\",\n  \"resolutionDate\": \"2026-04-24\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:9999/api/v1/resolutions/{{resolutionId}}",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "9999",
+              "path": ["api", "v1", "resolutions", "{{resolutionId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "⭐ Feedback",
+      "item": [
+        {
+          "name": "Submit Feedback",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"serviceRequestId\": \"{{requestId}}\",\n  \"rating\": 5,\n  \"comments\": \"Great service! The issue was resolved quickly.\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:9999/api/v1/feedback",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "9999",
+              "path": ["api", "v1", "feedback"]
+            }
+          }
+        },
+        {
+          "name": "Get Feedback by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:9999/api/v1/feedback/{{feedbackId}}",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "9999",
+              "path": ["api", "v1", "feedback", "{{feedbackId}}"]
+            }
+          }
+        },
+        {
+          "name": "Get All Feedback",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:9999/api/v1/feedback",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "9999",
+              "path": ["api", "v1", "feedback"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "📋 Compliance",
+      "item": [
+        {
+          "name": "Get Pending Verifications",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:9999/api/v1/compliance/pending",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "9999",
+              "path": ["api", "v1", "compliance", "pending"]
+            }
+          }
+        },
+        {
+          "name": "Get Document Details",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:9999/api/v1/compliance/{{documentId}}",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "9999",
+              "path": ["api", "v1", "compliance", "{{documentId}}"]
+            }
+          }
+        },
+        {
+          "name": "Verify Document",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"remarks\": \"Document verified successfully\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:9999/api/v1/compliance/{{documentId}}/verify",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "9999",
+              "path": ["api", "v1", "compliance", "{{documentId}}", "verify"]
+            }
+          }
+        },
+        {
+          "name": "Reject Document",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"remarks\": \"Document clarity is poor, please resubmit\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:9999/api/v1/compliance/{{documentId}}/reject",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "9999",
+              "path": ["api", "v1", "compliance", "{{documentId}}", "reject"]
+            }
+          }
+        },
+        {
+          "name": "Get Pending Citizen Verifications",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:9999/api/v1/compliance/citizens/pending",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "9999",
+              "path": ["api", "v1", "compliance", "citizens", "pending"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "📊 Reports",
+      "item": [
+        {
+          "name": "Service Request Report",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:9999/api/v1/reports/service-requests?startDate=2026-04-01&endDate=2026-04-30",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "9999",
+              "path": ["api", "v1", "reports", "service-requests"],
+              "query": [
+                {
+                  "key": "startDate",
+                  "value": "2026-04-01"
+                },
+                {
+                  "key": "endDate",
+                  "value": "2026-04-30"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Resolution Report",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:9999/api/v1/reports/resolutions?startDate=2026-04-01&endDate=2026-04-30",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "9999",
+              "path": ["api", "v1", "reports", "resolutions"],
+              "query": [
+                {
+                  "key": "startDate",
+                  "value": "2026-04-01"
+                },
+                {
+                  "key": "endDate",
+                  "value": "2026-04-30"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Complaints Report",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:9999/api/v1/reports/complaints",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "9999",
+              "path": ["api", "v1", "reports", "complaints"]
+            }
+          }
+        },
+        {
+          "name": "Performance Metrics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:9999/api/v1/reports/performance",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "9999",
+              "path": ["api", "v1", "reports", "performance"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🔔 Notifications",
+      "item": [
+        {
+          "name": "Get Notifications",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:9999/api/v1/notifications",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "9999",
+              "path": ["api", "v1", "notifications"]
+            }
+          }
+        },
+        {
+          "name": "Get Notification by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:9999/api/v1/notifications/{{notificationId}}",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "9999",
+              "path": ["api", "v1", "notifications", "{{notificationId}}"]
+            }
+          }
+        },
+        {
+          "name": "Mark Notification as Read",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:9999/api/v1/notifications/{{notificationId}}/read",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "9999",
+              "path": ["api", "v1", "notifications", "{{notificationId}}", "read"]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "jwt_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "citizenId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "userId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "requestId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "resolutionId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "feedbackId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "documentId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "notificationId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "officerId",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}
+
