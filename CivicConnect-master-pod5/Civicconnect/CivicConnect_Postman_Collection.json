@@ -1,0 +1,1521 @@
+{
+	"info": {
+		"_postman_id": "civicconnect-api-collection",
+		"name": "CivicConnect Microservices API",
+		"description": "Complete API collection for CivicConnect Microservices Platform.\n\n**Base URL (API Gateway):** http://localhost:9999\n\n**Authentication:** Bearer Token (JWT)\n\n**Roles:**\n- CITIZEN\n- SERVICE_OFFICER\n- DEPARTMENT_HEAD\n- CITY_ADMINISTRATOR\n- COMPLIANCE_OFFICER",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:9999",
+			"type": "string"
+		},
+		{
+			"key": "token",
+			"value": "",
+			"type": "string"
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{token}}",
+				"type": "string"
+			}
+		]
+	},
+	"item": [
+		{
+			"name": "1. Authentication",
+			"description": "Login endpoints - No token required",
+			"item": [
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"if (jsonData.token) {",
+									"    pm.collectionVariables.set('token', jsonData.token);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"citizen@example.com\",\n    \"password\": \"password123\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/auth/login",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "auth", "login"]
+						},
+						"description": "Authenticate using email + password. Returns a signed JWT (valid 1 hour).\n\n**Roles:** All (CITIZEN, SERVICE_OFFICER, DEPARTMENT_HEAD, CITY_ADMINISTRATOR, COMPLIANCE_OFFICER)"
+					}
+				}
+			]
+		},
+		{
+			"name": "2. Citizen Service",
+			"description": "Citizen registration, profile, and document management",
+			"item": [
+				{
+					"name": "Register Citizen (Public)",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"John Doe\",\n    \"email\": \"johndoe@example.com\",\n    \"phone\": \"9876543210\",\n    \"password\": \"SecurePass123\",\n    \"dateOfBirth\": \"1990-05-15\",\n    \"address\": \"123 Main Street, Chennai\",\n    \"contactInfo\": \"johndoe@example.com\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/citizens/register",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "citizens", "register"]
+						},
+						"description": "Public endpoint. Creates a User (INACTIVE) and Citizen profile.\n\n**Auth:** None required"
+					}
+				},
+				{
+					"name": "Get Citizen by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/citizens/:citizenId",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "citizens", ":citizenId"],
+							"variable": [
+								{
+									"key": "citizenId",
+									"value": "1"
+								}
+							]
+						},
+						"description": "Get citizen by ID.\n\n**Roles:** CITIZEN, SERVICE_OFFICER, DEPARTMENT_HEAD, CITY_ADMINISTRATOR"
+					}
+				},
+				{
+					"name": "Get Citizen by User ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/citizens/by-user/:userId",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "citizens", "by-user", ":userId"],
+							"variable": [
+								{
+									"key": "userId",
+									"value": "1"
+								}
+							]
+						},
+						"description": "Get citizen by user ID.\n\n**Roles:** CITIZEN, SERVICE_OFFICER, DEPARTMENT_HEAD, CITY_ADMINISTRATOR"
+					}
+				},
+				{
+					"name": "Get My Profile (CITIZEN)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/citizens/my-profile",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "citizens", "my-profile"]
+						},
+						"description": "Returns the logged-in citizen's profile. citizenId is auto-resolved from JWT.\n\n**Roles:** CITIZEN only"
+					}
+				},
+				{
+					"name": "Update My Profile (CITIZEN)",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"phone\": \"9876543211\",\n    \"address\": \"456 New Street, Chennai\",\n    \"contactInfo\": \"updated@example.com\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/citizens/my-profile",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "citizens", "my-profile"]
+						},
+						"description": "Citizen can update their own address, contactInfo, and phone.\n\n**Roles:** CITIZEN only"
+					}
+				},
+				{
+					"name": "Upload My Document (CITIZEN)",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "docType",
+									"value": "ID_PROOF",
+									"type": "text"
+								},
+								{
+									"key": "file",
+									"type": "file",
+									"src": ""
+								}
+							]
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/citizens/my-documents",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "citizens", "my-documents"]
+						},
+						"description": "Upload ID_PROOF or RESIDENCE_PROOF. citizenId is auto-resolved from JWT.\n\n**Roles:** CITIZEN only"
+					}
+				},
+				{
+					"name": "Get My Documents (CITIZEN)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/citizens/my-documents",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "citizens", "my-documents"]
+						},
+						"description": "Returns all documents uploaded by the logged-in citizen.\n\n**Roles:** CITIZEN only"
+					}
+				},
+				{
+					"name": "Get Documents by Citizen ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/citizens/:citizenId/documents",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "citizens", ":citizenId", "documents"],
+							"variable": [
+								{
+									"key": "citizenId",
+									"value": "1"
+								}
+							]
+						},
+						"description": "Get all documents for a citizen.\n\n**Roles:** CITIZEN, SERVICE_OFFICER, DEPARTMENT_HEAD, CITY_ADMINISTRATOR"
+					}
+				},
+				{
+					"name": "Get Pending Documents (Officers)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/citizens/documents/pending",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "citizens", "documents", "pending"]
+						},
+						"description": "Get all PENDING documents for verification.\n\n**Roles:** SERVICE_OFFICER, DEPARTMENT_HEAD, CITY_ADMINISTRATOR"
+					}
+				},
+				{
+					"name": "Verify Document (Officers)",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"newStatus\": \"VERIFIED\",\n    \"remarks\": \"Document verified successfully\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/citizens/documents/:documentId/verify",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "citizens", "documents", ":documentId", "verify"],
+							"variable": [
+								{
+									"key": "documentId",
+									"value": "1"
+								}
+							]
+						},
+						"description": "Verify or reject document. Set status to VERIFIED or REJECTED.\n\n**Roles:** SERVICE_OFFICER, DEPARTMENT_HEAD, CITY_ADMINISTRATOR"
+					}
+				},
+				{
+					"name": "Deactivate Citizen (ADMIN)",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/citizens/:citizenId/deactivate",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "citizens", ":citizenId", "deactivate"],
+							"variable": [
+								{
+									"key": "citizenId",
+									"value": "1"
+								}
+							]
+						},
+						"description": "Deactivate citizen account.\n\n**Roles:** CITY_ADMINISTRATOR only"
+					}
+				}
+			]
+		},
+		{
+			"name": "3. Service Request",
+			"description": "Submit, track, and manage service requests",
+			"item": [
+				{
+					"name": "Submit Service Request (CITIZEN)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"type\": \"ROAD\",\n    \"description\": \"Large pothole on main road causing traffic issues\",\n    \"location\": \"MG Road, Chennai\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/service-requests",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "service-requests"]
+						},
+						"description": "Submit a new service request. citizenId is auto-resolved from JWT.\n\n**Type:** ROAD, WATER, ELECTRICITY, SANITATION, OTHER\n\n**Roles:** CITIZEN only (must have ACTIVE account)"
+					}
+				},
+				{
+					"name": "Get My Requests (CITIZEN)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/service-requests/my-requests",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "service-requests", "my-requests"]
+						},
+						"description": "Get all service requests submitted by the logged-in citizen.\n\n**Roles:** CITIZEN only"
+					}
+				},
+				{
+					"name": "Get Request by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/service-requests/:requestId",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "service-requests", ":requestId"],
+							"variable": [
+								{
+									"key": "requestId",
+									"value": "1"
+								}
+							]
+						},
+						"description": "Get service request by ID.\n\n**Roles:** CITIZEN, SERVICE_OFFICER, DEPARTMENT_HEAD, CITY_ADMINISTRATOR"
+					}
+				},
+				{
+					"name": "Get Requests by Citizen ID (Officers)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/service-requests/citizen/:citizenId",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "service-requests", "citizen", ":citizenId"],
+							"variable": [
+								{
+									"key": "citizenId",
+									"value": "1"
+								}
+							]
+						},
+						"description": "Get all requests by a citizen ID.\n\n**Roles:** DEPARTMENT_HEAD, CITY_ADMINISTRATOR, COMPLIANCE_OFFICER"
+					}
+				},
+				{
+					"name": "Get Request Updates",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/service-requests/:requestId/updates",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "service-requests", ":requestId", "updates"],
+							"variable": [
+								{
+									"key": "requestId",
+									"value": "1"
+								}
+							]
+						},
+						"description": "Get update history for a request.\n\n**Roles:** CITIZEN, SERVICE_OFFICER, DEPARTMENT_HEAD, CITY_ADMINISTRATOR"
+					}
+				},
+				{
+					"name": "Get Requests by Officer ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/service-requests/officer/:officerId",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "service-requests", "officer", ":officerId"],
+							"variable": [
+								{
+									"key": "officerId",
+									"value": "1"
+								}
+							]
+						},
+						"description": "Get requests assigned to an officer.\n\n**Roles:** SERVICE_OFFICER, DEPARTMENT_HEAD, CITY_ADMINISTRATOR"
+					}
+				},
+				{
+					"name": "Get Requests by Status",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/service-requests?status=SUBMITTED",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "service-requests"],
+							"query": [
+								{
+									"key": "status",
+									"value": "SUBMITTED",
+									"description": "SUBMITTED | ASSIGNED | IN_PROGRESS | RESOLVED | CLOSED"
+								}
+							]
+						},
+						"description": "Get requests filtered by status. SERVICE_OFFICER sees only their assigned requests.\n\n**Status:** SUBMITTED, ASSIGNED, IN_PROGRESS, RESOLVED, CLOSED\n\n**Roles:** SERVICE_OFFICER, DEPARTMENT_HEAD, CITY_ADMINISTRATOR"
+					}
+				},
+				{
+					"name": "Assign Officer to Request",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"officerId\": 2\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/service-requests/:requestId/assign",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "service-requests", ":requestId", "assign"],
+							"variable": [
+								{
+									"key": "requestId",
+									"value": "1"
+								}
+							]
+						},
+						"description": "Assign a SERVICE_OFFICER to a SUBMITTED request.\n\n**Roles:** DEPARTMENT_HEAD, CITY_ADMINISTRATOR"
+					}
+				},
+				{
+					"name": "Update Request Status",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"newStatus\": \"IN_PROGRESS\",\n    \"comments\": \"Started working on the issue\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/service-requests/:requestId/status",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "service-requests", ":requestId", "status"],
+							"variable": [
+								{
+									"key": "requestId",
+									"value": "1"
+								}
+							]
+						},
+						"description": "Update request status. Forward-only: ASSIGNED → IN_PROGRESS → RESOLVED.\n\n**Roles:** SERVICE_OFFICER, DEPARTMENT_HEAD, CITY_ADMINISTRATOR (assigned officer only)"
+					}
+				},
+				{
+					"name": "Close Request (CITIZEN)",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/service-requests/:requestId/close",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "service-requests", ":requestId", "close"],
+							"variable": [
+								{
+									"key": "requestId",
+									"value": "1"
+								}
+							]
+						},
+						"description": "Citizen confirms resolution. Request must be in RESOLVED status.\n\n**Roles:** CITIZEN only"
+					}
+				},
+				{
+					"name": "Withdraw Request (CITIZEN)",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/service-requests/:requestId",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "service-requests", ":requestId"],
+							"variable": [
+								{
+									"key": "requestId",
+									"value": "1"
+								}
+							]
+						},
+						"description": "Withdraw a SUBMITTED (unassigned) request.\n\n**Roles:** CITIZEN only"
+					}
+				}
+			]
+		},
+		{
+			"name": "4. Resolution Service",
+			"description": "Issue resolution and workflow step management",
+			"item": [
+				{
+					"name": "Create Resolution",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"serviceRequestId\": 1,\n    \"description\": \"Resolution plan for the reported issue\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/resolutions",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "resolutions"]
+						},
+						"description": "Create resolution for an ASSIGNED service request. Auto-pushes IN_PROGRESS status.\n\n**Roles:** SERVICE_OFFICER, DEPARTMENT_HEAD, CITY_ADMINISTRATOR"
+					}
+				},
+				{
+					"name": "Get Resolution by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/resolutions/:resolutionId",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "resolutions", ":resolutionId"],
+							"variable": [
+								{
+									"key": "resolutionId",
+									"value": "1"
+								}
+							]
+						},
+						"description": "Get resolution by ID.\n\n**Roles:** SERVICE_OFFICER, DEPARTMENT_HEAD, CITY_ADMINISTRATOR"
+					}
+				},
+				{
+					"name": "Get Resolution by Request ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/resolutions/by-request/:requestId",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "resolutions", "by-request", ":requestId"],
+							"variable": [
+								{
+									"key": "requestId",
+									"value": "1"
+								}
+							]
+						},
+						"description": "Get resolution by service request ID.\n\n**Roles:** SERVICE_OFFICER, DEPARTMENT_HEAD, CITY_ADMINISTRATOR"
+					}
+				},
+				{
+					"name": "Get Resolutions by Officer ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/resolutions/officer/:officerId",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "resolutions", "officer", ":officerId"],
+							"variable": [
+								{
+									"key": "officerId",
+									"value": "1"
+								}
+							]
+						},
+						"description": "Get all resolutions by officer.\n\n**Roles:** SERVICE_OFFICER, DEPARTMENT_HEAD, CITY_ADMINISTRATOR"
+					}
+				},
+				{
+					"name": "Add Workflow Step",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"description\": \"Inspect the site\",\n    \"assignedToUserId\": 2\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/resolutions/:resolutionId/steps",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "resolutions", ":resolutionId", "steps"],
+							"variable": [
+								{
+									"key": "resolutionId",
+									"value": "1"
+								}
+							]
+						},
+						"description": "Add a workflow step to an IN_PROGRESS resolution.\n\n**Roles:** SERVICE_OFFICER, DEPARTMENT_HEAD, CITY_ADMINISTRATOR"
+					}
+				},
+				{
+					"name": "Get Workflow Steps",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/resolutions/:resolutionId/steps",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "resolutions", ":resolutionId", "steps"],
+							"variable": [
+								{
+									"key": "resolutionId",
+									"value": "1"
+								}
+							]
+						},
+						"description": "Get all workflow steps for a resolution.\n\n**Roles:** SERVICE_OFFICER, DEPARTMENT_HEAD, CITY_ADMINISTRATOR"
+					}
+				},
+				{
+					"name": "Update Workflow Step Status",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"newStatus\": \"IN_PROGRESS\",\n    \"notes\": \"Started inspection\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/resolutions/steps/:stepId/status",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "resolutions", "steps", ":stepId", "status"],
+							"variable": [
+								{
+									"key": "stepId",
+									"value": "1"
+								}
+							]
+						},
+						"description": "Update step status: PENDING → IN_PROGRESS → COMPLETED.\n\n**Roles:** SERVICE_OFFICER, DEPARTMENT_HEAD, CITY_ADMINISTRATOR (assigned officer only)"
+					}
+				}
+			]
+		},
+		{
+			"name": "5. Feedback Service",
+			"description": "Citizen feedback and satisfaction metrics",
+			"item": [
+				{
+					"name": "Submit Feedback (CITIZEN)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"serviceRequestId\": 1,\n    \"rating\": 5,\n    \"comments\": \"Excellent service! Issue was resolved quickly.\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/feedback",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "feedback"]
+						},
+						"description": "Submit rating (1-5) and optional comments for a CLOSED service request.\n\n**Roles:** CITIZEN only"
+					}
+				},
+				{
+					"name": "Get Feedback by Request ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/feedback/request/:requestId",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "feedback", "request", ":requestId"],
+							"variable": [
+								{
+									"key": "requestId",
+									"value": "1"
+								}
+							]
+						},
+						"description": "Get feedback by service request ID.\n\n**Roles:** CITIZEN, SERVICE_OFFICER, DEPARTMENT_HEAD, CITY_ADMINISTRATOR"
+					}
+				},
+				{
+					"name": "Get Feedbacks by Citizen ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/feedback/citizen/:citizenId",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "feedback", "citizen", ":citizenId"],
+							"variable": [
+								{
+									"key": "citizenId",
+									"value": "1"
+								}
+							]
+						},
+						"description": "Get all feedback submitted by a citizen.\n\n**Roles:** CITIZEN, SERVICE_OFFICER, DEPARTMENT_HEAD, CITY_ADMINISTRATOR"
+					}
+				},
+				{
+					"name": "Get Satisfaction Metric by Officer",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/feedback/metrics/officer/:officerId",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "feedback", "metrics", "officer", ":officerId"],
+							"variable": [
+								{
+									"key": "officerId",
+									"value": "1"
+								}
+							]
+						},
+						"description": "Get satisfaction metric for one officer.\n\n**Roles:** SERVICE_OFFICER, DEPARTMENT_HEAD, CITY_ADMINISTRATOR"
+					}
+				},
+				{
+					"name": "Get All Satisfaction Metrics (Leaderboard)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/feedback/metrics",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "feedback", "metrics"]
+						},
+						"description": "Get all officers ordered by average satisfaction score.\n\n**Roles:** DEPARTMENT_HEAD, CITY_ADMINISTRATOR, COMPLIANCE_OFFICER"
+					}
+				}
+			]
+		},
+		{
+			"name": "6. Compliance Service",
+			"description": "Compliance records and audit management",
+			"item": [
+				{
+					"name": "Create Compliance Record",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"complianceType\": \"REQUEST\",\n    \"entityId\": 1,\n    \"result\": \"PASS\",\n    \"notes\": \"Request meets all compliance standards\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/compliance/records",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "compliance", "records"]
+						},
+						"description": "Create an immutable PASS/FAIL compliance record.\n\n**Type:** REQUEST, RESOLUTION\n\n**Roles:** COMPLIANCE_OFFICER, CITY_ADMINISTRATOR"
+					}
+				},
+				{
+					"name": "Get Compliance Record by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/compliance/records/:complianceId",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "compliance", "records", ":complianceId"],
+							"variable": [
+								{
+									"key": "complianceId",
+									"value": "1"
+								}
+							]
+						},
+						"description": "Get compliance record by ID.\n\n**Roles:** COMPLIANCE_OFFICER, CITY_ADMINISTRATOR"
+					}
+				},
+				{
+					"name": "Get Compliance Records by Entity",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/compliance/records?type=REQUEST&entityId=1",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "compliance", "records"],
+							"query": [
+								{
+									"key": "type",
+									"value": "REQUEST"
+								},
+								{
+									"key": "entityId",
+									"value": "1"
+								}
+							]
+						},
+						"description": "Get compliance records for a specific entity.\n\n**Roles:** COMPLIANCE_OFFICER, CITY_ADMINISTRATOR"
+					}
+				},
+				{
+					"name": "Get Compliance Records by Result",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/compliance/records/result?result=FAIL",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "compliance", "records", "result"],
+							"query": [
+								{
+									"key": "result",
+									"value": "FAIL"
+								}
+							]
+						},
+						"description": "Get compliance records by result (PASS or FAIL).\n\n**Roles:** COMPLIANCE_OFFICER, CITY_ADMINISTRATOR"
+					}
+				},
+				{
+					"name": "Create Audit Record",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"scope\": \"Review of Q1 2026 service requests\",\n    \"notes\": \"Initial audit setup\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/compliance/audits",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "compliance", "audits"]
+						},
+						"description": "Create an audit with status OPEN.\n\n**Roles:** COMPLIANCE_OFFICER, CITY_ADMINISTRATOR"
+					}
+				},
+				{
+					"name": "Get Audit Record by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/compliance/audits/:auditId",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "compliance", "audits", ":auditId"],
+							"variable": [
+								{
+									"key": "auditId",
+									"value": "1"
+								}
+							]
+						},
+						"description": "Get audit record by ID.\n\n**Roles:** COMPLIANCE_OFFICER, CITY_ADMINISTRATOR"
+					}
+				},
+				{
+					"name": "Update Audit Record",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"newStatus\": \"IN_REVIEW\",\n    \"findings\": \"Reviewing documentation\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/compliance/audits/:auditId",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "compliance", "audits", ":auditId"],
+							"variable": [
+								{
+									"key": "auditId",
+									"value": "1"
+								}
+							]
+						},
+						"description": "Update audit: OPEN → IN_REVIEW → CLOSED.\n\n**Roles:** COMPLIANCE_OFFICER, CITY_ADMINISTRATOR (creating officer only)"
+					}
+				},
+				{
+					"name": "Get Audits by Officer ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/compliance/audits/officer/:officerId",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "compliance", "audits", "officer", ":officerId"],
+							"variable": [
+								{
+									"key": "officerId",
+									"value": "1"
+								}
+							]
+						},
+						"description": "Get all audits by officer.\n\n**Roles:** COMPLIANCE_OFFICER, CITY_ADMINISTRATOR"
+					}
+				},
+				{
+					"name": "Get Audits by Status",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/compliance/audits?status=OPEN",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "compliance", "audits"],
+							"query": [
+								{
+									"key": "status",
+									"value": "OPEN",
+									"description": "OPEN | IN_REVIEW | CLOSED"
+								}
+							]
+						},
+						"description": "Get audits by status.\n\n**Roles:** COMPLIANCE_OFFICER, CITY_ADMINISTRATOR"
+					}
+				}
+			]
+		},
+		{
+			"name": "7. Reporting Service",
+			"description": "Generate and retrieve system reports",
+			"item": [
+				{
+					"name": "Generate Report",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"scope\": \"REQUEST\",\n    \"title\": \"Monthly Service Request Report\",\n    \"description\": \"Summary of all service requests for this month\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/reports",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "reports"]
+						},
+						"description": "Generate a report. Aggregates live data from all services.\n\n**Scope:** REQUEST, FEEDBACK, COMPLIANCE, DEPARTMENT\n\n**Roles:** DEPARTMENT_HEAD, CITY_ADMINISTRATOR"
+					}
+				},
+				{
+					"name": "Get Report by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/reports/:reportId",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "reports", ":reportId"],
+							"variable": [
+								{
+									"key": "reportId",
+									"value": "1"
+								}
+							]
+						},
+						"description": "Get report by ID.\n\n**Roles:** DEPARTMENT_HEAD, CITY_ADMINISTRATOR, COMPLIANCE_OFFICER"
+					}
+				},
+				{
+					"name": "Get All Reports",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/reports",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "reports"]
+						},
+						"description": "Get all reports — newest first.\n\n**Roles:** DEPARTMENT_HEAD, CITY_ADMINISTRATOR, COMPLIANCE_OFFICER"
+					}
+				},
+				{
+					"name": "Get Reports by Scope",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/reports/scope?scope=REQUEST",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "reports", "scope"],
+							"query": [
+								{
+									"key": "scope",
+									"value": "REQUEST",
+									"description": "REQUEST | FEEDBACK | COMPLIANCE | DEPARTMENT"
+								}
+							]
+						},
+						"description": "Get reports filtered by scope.\n\n**Roles:** DEPARTMENT_HEAD, CITY_ADMINISTRATOR, COMPLIANCE_OFFICER"
+					}
+				}
+			]
+		},
+		{
+			"name": "8. Notification Service",
+			"description": "Notification management for all users",
+			"item": [
+				{
+					"name": "Get Notifications by User ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/notifications?userId=1",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "notifications"],
+							"query": [
+								{
+									"key": "userId",
+									"value": "1"
+								}
+							]
+						},
+						"description": "Get all notifications for a user.\n\n**Roles:** All authenticated users"
+					}
+				},
+				{
+					"name": "Get Unread Notifications",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/notifications/unread?userId=1",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "notifications", "unread"],
+							"query": [
+								{
+									"key": "userId",
+									"value": "1"
+								}
+							]
+						},
+						"description": "Get unread notifications for a user.\n\n**Roles:** All authenticated users"
+					}
+				},
+				{
+					"name": "Get Unread Count",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/notifications/unread/count?userId=1",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "notifications", "unread", "count"],
+							"query": [
+								{
+									"key": "userId",
+									"value": "1"
+								}
+							]
+						},
+						"description": "Get unread notification count for a user.\n\n**Roles:** All authenticated users"
+					}
+				},
+				{
+					"name": "Get Notifications by Category",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/notifications/category?userId=1&category=SERVICE_REQUEST",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "notifications", "category"],
+							"query": [
+								{
+									"key": "userId",
+									"value": "1"
+								},
+								{
+									"key": "category",
+									"value": "SERVICE_REQUEST",
+									"description": "SERVICE_REQUEST | DOCUMENT | COMPLIANCE | FEEDBACK | SYSTEM"
+								}
+							]
+						},
+						"description": "Get notifications for a user filtered by category.\n\n**Roles:** All authenticated users"
+					}
+				},
+				{
+					"name": "Mark Notification as Read",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/notifications/:notificationId/read",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "notifications", ":notificationId", "read"],
+							"variable": [
+								{
+									"key": "notificationId",
+									"value": "1"
+								}
+							]
+						},
+						"description": "Mark notification as read — owner only.\n\n**Roles:** All authenticated users"
+					}
+				},
+				{
+					"name": "Dismiss Notification",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/notifications/:notificationId/dismiss",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "notifications", ":notificationId", "dismiss"],
+							"variable": [
+								{
+									"key": "notificationId",
+									"value": "1"
+								}
+							]
+						},
+						"description": "Dismiss notification — owner only.\n\n**Roles:** All authenticated users"
+					}
+				}
+			]
+		},
+		{
+			"name": "9. Staff Management (IAM)",
+			"description": "Staff account management and audit logs",
+			"item": [
+				{
+					"name": "Get My Profile",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/iam/me",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "iam", "me"]
+						},
+						"description": "Returns the profile of the authenticated user.\n\n**Roles:** All authenticated users"
+					}
+				},
+				{
+					"name": "Create Staff Account (ADMIN)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Officer John\",\n    \"email\": \"officer.john@civicconnect.com\",\n    \"phone\": \"9876543210\",\n    \"password\": \"SecurePass123\",\n    \"role\": \"SERVICE_OFFICER\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/users/staff",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "users", "staff"]
+						},
+						"description": "Create SERVICE_OFFICER, DEPARTMENT_HEAD, CITY_ADMINISTRATOR, or COMPLIANCE_OFFICER accounts.\n\n**Roles:** CITY_ADMINISTRATOR only"
+					}
+				},
+				{
+					"name": "Get Staff by Role (ADMIN)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/users/staff?role=SERVICE_OFFICER",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "users", "staff"],
+							"query": [
+								{
+									"key": "role",
+									"value": "SERVICE_OFFICER",
+									"description": "SERVICE_OFFICER | DEPARTMENT_HEAD | CITY_ADMINISTRATOR | COMPLIANCE_OFFICER"
+								}
+							]
+						},
+						"description": "Filter staff by role.\n\n**Roles:** CITY_ADMINISTRATOR only"
+					}
+				},
+				{
+					"name": "Get Staff by ID (ADMIN)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/users/staff/:userId",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "users", "staff", ":userId"],
+							"variable": [
+								{
+									"key": "userId",
+									"value": "1"
+								}
+							]
+						},
+						"description": "Get staff by ID.\n\n**Roles:** CITY_ADMINISTRATOR only"
+					}
+				},
+				{
+					"name": "Update Staff Status (ADMIN)",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/users/staff/:userId/status?newStatus=SUSPENDED",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "users", "staff", ":userId", "status"],
+							"query": [
+								{
+									"key": "newStatus",
+									"value": "SUSPENDED",
+									"description": "ACTIVE | SUSPENDED"
+								}
+							],
+							"variable": [
+								{
+									"key": "userId",
+									"value": "1"
+								}
+							]
+						},
+						"description": "Set status to ACTIVE or SUSPENDED for a staff account.\n\n**Roles:** CITY_ADMINISTRATOR only"
+					}
+				},
+				{
+					"name": "Deactivate User (ADMIN)",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/iam/users/:userId/deactivate",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "iam", "users", ":userId", "deactivate"],
+							"variable": [
+								{
+									"key": "userId",
+									"value": "1"
+								}
+							]
+						},
+						"description": "Deactivate a user.\n\n**Roles:** CITY_ADMINISTRATOR only"
+					}
+				},
+				{
+					"name": "Get All Audit Logs (ADMIN)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/iam/audit-logs",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "iam", "audit-logs"]
+						},
+						"description": "Get all audit logs.\n\n**Roles:** CITY_ADMINISTRATOR only"
+					}
+				},
+				{
+					"name": "Get Audit Logs by Resource (ADMIN)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/iam/audit-logs/resource?resource=USER&resourceId=1",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "iam", "audit-logs", "resource"],
+							"query": [
+								{
+									"key": "resource",
+									"value": "USER",
+									"description": "USER | CITIZEN | SERVICE_REQUEST"
+								},
+								{
+									"key": "resourceId",
+									"value": "1"
+								}
+							]
+						},
+						"description": "Get audit logs by resource.\n\n**Roles:** CITY_ADMINISTRATOR only"
+					}
+				},
+				{
+					"name": "Get Audit Logs by Action (ADMIN)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/iam/audit-logs/action?action=CREATE",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "iam", "audit-logs", "action"],
+							"query": [
+								{
+									"key": "action",
+									"value": "CREATE",
+									"description": "CREATE | UPDATE | DELETE | LOGIN | etc."
+								}
+							]
+						},
+						"description": "Get audit logs by action type.\n\n**Roles:** CITY_ADMINISTRATOR only"
+					}
+				},
+				{
+					"name": "Get Audit Logs by User (ADMIN/COMPLIANCE)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/iam/audit-logs/user/:userId",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "iam", "audit-logs", "user", ":userId"],
+							"variable": [
+								{
+									"key": "userId",
+									"value": "1"
+								}
+							]
+						},
+						"description": "Get audit logs by user.\n\n**Roles:** CITY_ADMINISTRATOR, COMPLIANCE_OFFICER"
+					}
+				}
+			]
+		},
+		{
+			"name": "10. Audit Records",
+			"description": "Formal compliance audits (Identity Service)",
+			"item": [
+				{
+					"name": "Create Audit Record",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"scope\": \"Review of service officer performance\",\n    \"notes\": \"Quarterly audit\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/audit-records",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "audit-records"]
+						},
+						"description": "Initiate a new formal audit with a defined scope.\n\n**Roles:** COMPLIANCE_OFFICER, CITY_ADMINISTRATOR"
+					}
+				},
+				{
+					"name": "Get Audit Record by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/audit-records/:auditId",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "audit-records", ":auditId"],
+							"variable": [
+								{
+									"key": "auditId",
+									"value": "1"
+								}
+							]
+						},
+						"description": "Get audit record by ID.\n\n**Roles:** COMPLIANCE_OFFICER, CITY_ADMINISTRATOR"
+					}
+				},
+				{
+					"name": "Get All Audit Records",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/audit-records",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "audit-records"]
+						},
+						"description": "Get all audit records.\n\n**Roles:** COMPLIANCE_OFFICER, CITY_ADMINISTRATOR"
+					}
+				},
+				{
+					"name": "Update Audit Record",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"newStatus\": \"IN_REVIEW\",\n    \"findings\": \"Reviewing documentation\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/audit-records/:auditId",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "audit-records", ":auditId"],
+							"variable": [
+								{
+									"key": "auditId",
+									"value": "1"
+								}
+							]
+						},
+						"description": "Move the audit forward: OPEN → IN_REVIEW → CLOSED.\n\n**Roles:** COMPLIANCE_OFFICER, CITY_ADMINISTRATOR (owning officer only)"
+					}
+				},
+				{
+					"name": "Get Audit Records by Officer",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/audit-records/officer/:officerId",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "audit-records", "officer", ":officerId"],
+							"variable": [
+								{
+									"key": "officerId",
+									"value": "1"
+								}
+							]
+						},
+						"description": "Get audit records by officer.\n\n**Roles:** COMPLIANCE_OFFICER, CITY_ADMINISTRATOR"
+					}
+				},
+				{
+					"name": "Get Audit Records by Status",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/audit-records/status?status=OPEN",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "audit-records", "status"],
+							"query": [
+								{
+									"key": "status",
+									"value": "OPEN",
+									"description": "OPEN | IN_REVIEW | CLOSED"
+								}
+							]
+						},
+						"description": "Get audit records by status.\n\n**Roles:** COMPLIANCE_OFFICER, CITY_ADMINISTRATOR"
+					}
+				}
+			]
+		}
+	]
+}
+

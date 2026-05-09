@@ -1,0 +1,100 @@
+spring:
+  application:
+    name: service-request-service
+  config:
+    import: optional:configserver:http://localhost:8888
+
+  # ── Database ──────────────────────────────────────────────────────────────
+  datasource:
+    url: jdbc:mysql://localhost:3306/civicconnect_servicerequest?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+    username: root
+    password: root
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+
+server:
+  port: 8083
+
+# ── JWT ───────────────────────────────────────────────────────────────────
+jwt:
+  secret: dGhpcy1pcy1hLXZlcnktc2VjdXJlLWtleS1mb3ItY2l2aWNjb25uZWN0LWp3dC0yMDI0
+  expiration:
+    ms: 86400000
+
+# ── Feign Circuit Breaker ─────────────────────────────────────────────────
+feign:
+  circuitbreaker:
+    enabled: true
+spring.cloud.openfeign.circuitbreaker.enabled: true
+
+# ── Resilience4j ─────────────────────────────────────────────────────────
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        registerHealthIndicator: true
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        permittedNumberOfCallsInHalfOpenState: 3
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        waitDurationInOpenState: 5s
+        failureRateThreshold: 50
+    instances:
+      citizen-service:
+        baseConfig: default
+      identity-service:
+        baseConfig: default
+      notification-service:
+        baseConfig: default
+  timelimiter:
+    configs:
+      default:
+        timeoutDuration: 3s
+
+# ── Eureka ────────────────────────────────────────────────────────────────
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+    registry-fetch-interval-seconds: 5
+  instance:
+    prefer-ip-address: true
+    lease-renewal-interval-in-seconds: 10
+    lease-expiration-duration-in-seconds: 30
+
+# ── Swagger UI ────────────────────────────────────────────────────────────
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operationsSorter: method
+    tagsSorter: alpha
+    tryItOutEnabled: true
+    filter: true
+
+# ── Actuator ─────────────────────────────────────────────────────────────
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,circuitbreakers
+  endpoint:
+    health:
+      show-details: always
+
+# ──────────────────────────────────────────────────────────────────────────
+# Logging — temporarily verbose on the security filter so we can confirm
+# X-User-Role is arriving correctly when calls come through the gateway.
+# ──────────────────────────────────────────────────────────────────────────
+logging:
+  level:
+    com.civicconnect.servicerequest.security: DEBUG
+    com.civicconnect.servicerequest.exception: WARN
+    org.springframework.security: INFO

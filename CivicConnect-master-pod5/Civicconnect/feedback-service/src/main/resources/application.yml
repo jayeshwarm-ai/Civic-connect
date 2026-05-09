@@ -1,0 +1,65 @@
+spring:
+  application:
+    name: feedback-service
+  config:
+    import: optional:configserver:http://localhost:8888
+
+  # ── Database ──────────────────────────────────────────────────────────────
+  datasource:
+    url: jdbc:mysql://localhost:3306/civicconnect_feedback?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+    username: root
+    password: root
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+
+server:
+  port: 8085
+
+# ── JWT ───────────────────────────────────────────────────────────────────
+jwt:
+  secret: dGhpcy1pcy1hLXZlcnktc2VjdXJlLWtleS1mb3ItY2l2aWNjb25uZWN0LWp3dC0yMDI0
+  expiration:
+    ms: 86400000
+
+# ── Feign Circuit Breaker ─────────────────────────────────────────────────
+feign:
+  circuitbreaker:
+    enabled: true
+
+# ── Eureka ────────────────────────────────────────────────────────────────
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+    registry-fetch-interval-seconds: 5
+  instance:
+    prefer-ip-address: true
+    lease-renewal-interval-in-seconds: 10
+    lease-expiration-duration-in-seconds: 30
+
+# ── Swagger UI ────────────────────────────────────────────────────────────
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operationsSorter: method
+    tagsSorter: alpha
+    tryItOutEnabled: true
+    filter: true
+
+# ── Actuator ─────────────────────────────────────────────────────────────
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,circuitbreakers
+  endpoint:
+    health:
+      show-details: always
