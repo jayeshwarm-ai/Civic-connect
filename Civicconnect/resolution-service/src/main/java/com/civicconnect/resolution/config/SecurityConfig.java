@@ -23,6 +23,7 @@ public class SecurityConfig {
     private static final String SERVICE_OFFICER    = "SERVICE_OFFICER";
     private static final String DEPARTMENT_HEAD    = "DEPARTMENT_HEAD";
     private static final String CITY_ADMINISTRATOR = "CITY_ADMINISTRATOR";
+    private static final String COMPLIANCE_OFFICER = "COMPLIANCE_OFFICER";
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -38,8 +39,14 @@ public class SecurityConfig {
                         "/actuator/**").permitAll()
                 .requestMatchers("/internal/**").permitAll()
 
-                // ── All resolution endpoints: SERVICE_OFFICER and above ─────
-                // Citizens never interact with resolutions directly
+                // ── COMPLIANCE_OFFICER: read-only access to resolutions ────
+                // Needed to verify a resolution is COMPLETED before recording
+                // a compliance check on it.
+                .requestMatchers(HttpMethod.GET, "/api/v1/resolutions/**")
+                    .hasAnyRole(SERVICE_OFFICER, DEPARTMENT_HEAD, CITY_ADMINISTRATOR, COMPLIANCE_OFFICER)
+
+                // ── Write actions: SERVICE_OFFICER and above only ──────────
+                // Citizens never interact with resolutions directly.
                 .requestMatchers("/api/v1/resolutions/**")
                     .hasAnyRole(SERVICE_OFFICER, DEPARTMENT_HEAD, CITY_ADMINISTRATOR)
 

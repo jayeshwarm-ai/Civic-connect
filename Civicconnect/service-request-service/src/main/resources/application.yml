@@ -88,3 +88,13 @@ management:
   endpoint:
     health:
       show-details: always
+
+# ──────────────────────────────────────────────────────────────────────────
+# Logging — temporarily verbose on the security filter so we can confirm
+# X-User-Role is arriving correctly when calls come through the gateway.
+# ──────────────────────────────────────────────────────────────────────────
+logging:
+  level:
+    com.civicconnect.servicerequest.security: DEBUG
+    com.civicconnect.servicerequest.exception: WARN
+    org.springframework.security: INFO

@@ -1,6 +1,7 @@
 package com.civicconnect.identity.controller;
 
 import com.civicconnect.identity.dto.request.CreateStaffRequest;
+import com.civicconnect.identity.dto.request.UpdateMyProfileRequest;
 import com.civicconnect.identity.dto.response.StaffResponse;
 import com.civicconnect.identity.enums.Role;
 import com.civicconnect.identity.enums.UserStatus;
@@ -90,6 +91,43 @@ public class UserController {
             Authentication authentication) {
         return ResponseEntity.ok(
                 userService.updateStaffStatus(userId, newStatus, extractUserId(authentication)));
+    }
+
+    // ════════════════════════════════════════════════════════════════════════
+    // SELF-SERVICE: any signed-in staff role can view & edit their own profile.
+    // City Administrators are blocked from editing inside the service layer
+    // because their accounts are administered centrally — but they CAN view.
+    // ════════════════════════════════════════════════════════════════════════
+
+    // ── GET /api/v1/users/me ──────────────────────────────────────────────────
+    @Operation(
+        summary = "Get my profile — any signed-in staff role",
+        description = "Returns the currently authenticated user's profile. " +
+                      "Citizens should use /api/v1/citizens/my-profile instead."
+    )
+    @ApiResponse(responseCode = "200", description = "Profile returned")
+    @ApiResponse(responseCode = "404", description = "User not found")
+    @PreAuthorize("hasAnyRole('SERVICE_OFFICER','DEPARTMENT_HEAD','CITY_ADMINISTRATOR','COMPLIANCE_OFFICER')")
+    @GetMapping("/me")
+    public ResponseEntity<StaffResponse> getMyProfile(Authentication authentication) {
+        return ResponseEntity.ok(userService.getMyProfile(extractUserId(authentication)));
+    }
+
+    // ── PATCH /api/v1/users/me ────────────────────────────────────────────────
+    @Operation(
+        summary = "Update my profile (email + phone) — staff only, NOT City Admin",
+        description = "Service Officers, Department Heads, and Compliance Officers " +
+                      "can update their own email and phone. City Administrators cannot self-edit."
+    )
+    @ApiResponse(responseCode = "200", description = "Profile updated")
+    @ApiResponse(responseCode = "400", description = "City Administrator self-edit not allowed")
+    @ApiResponse(responseCode = "409", description = "Email or phone already in use")
+    @PreAuthorize("hasAnyRole('SERVICE_OFFICER','DEPARTMENT_HEAD','COMPLIANCE_OFFICER')")
+    @PatchMapping("/me")
+    public ResponseEntity<StaffResponse> updateMyProfile(
+            @Valid @RequestBody UpdateMyProfileRequest request,
+            Authentication authentication) {
+        return ResponseEntity.ok(userService.updateMyProfile(extractUserId(authentication), request));
     }
 
     // ── Helper ────────────────────────────────────────────────────────────────

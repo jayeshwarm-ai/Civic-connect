@@ -62,6 +62,13 @@ public class SecurityConfig {
                 // /internal/audit-logs     → all services write audit trail here
                 .requestMatchers("/internal/**").permitAll()
 
+                // ── Self-service: any signed-in staff role can view/edit own profile ─
+                // (Citizens use /api/v1/citizens/my-profile instead — different service)
+                .requestMatchers(HttpMethod.GET,   "/api/v1/users/me")
+                    .hasAnyRole("SERVICE_OFFICER", "DEPARTMENT_HEAD", "CITY_ADMINISTRATOR", "COMPLIANCE_OFFICER")
+                .requestMatchers(HttpMethod.PATCH, "/api/v1/users/me")
+                    .hasAnyRole("SERVICE_OFFICER", "DEPARTMENT_HEAD", "COMPLIANCE_OFFICER")
+
                 // ── Staff Management — CITY_ADMINISTRATOR only ─────────────
                 .requestMatchers("/api/v1/users/**")
                     .hasRole(CITY_ADMINISTRATOR)

@@ -25,4 +25,10 @@ public interface UserService {
 
     // ── 4. UPDATE STAFF STATUS ────────────────────────────────────────────────
     StaffResponse updateStaffStatus(Long userId, UserStatus newStatus, Long adminId);
+
+    // ── 5. GET MY PROFILE (any signed-in staff role) ──────────────────────────
+    StaffResponse getMyProfile(Long userId);
+
+    // ── 6. UPDATE MY PROFILE — self-edit email + phone (NOT for City Admin) ───
+    StaffResponse updateMyProfile(Long userId, com.civicconnect.identity.dto.request.UpdateMyProfileRequest request);
 }

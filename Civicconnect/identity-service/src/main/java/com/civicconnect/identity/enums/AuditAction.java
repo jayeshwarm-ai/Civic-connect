@@ -33,6 +33,7 @@ public enum AuditAction {
     // Staff
     STAFF_CREATED,
     STAFF_STATUS_UPDATED,
+    STAFF_PROFILE_UPDATED,
 
     // Feedback
     FEEDBACK_SUBMITTED,

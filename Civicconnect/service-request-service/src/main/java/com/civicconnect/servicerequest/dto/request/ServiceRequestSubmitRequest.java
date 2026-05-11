@@ -16,6 +16,12 @@ public class ServiceRequestSubmitRequest {
     @NotBlank(message = "Description is required")
     private String description;
 
-    @NotBlank(message = "Location is required")
-    private String location;
+    @NotBlank(message = "State is required")
+    private String state;
+
+    @NotBlank(message = "City is required")
+    private String city;
+
+    @NotBlank(message = "Address is required")
+    private String address;
 }

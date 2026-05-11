@@ -24,6 +24,7 @@ public class SecurityConfig {
     private static final String SERVICE_OFFICER    = "SERVICE_OFFICER";
     private static final String DEPARTMENT_HEAD    = "DEPARTMENT_HEAD";
     private static final String CITY_ADMINISTRATOR = "CITY_ADMINISTRATOR";
+    private static final String COMPLIANCE_OFFICER = "COMPLIANCE_OFFICER";
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -49,7 +50,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/v1/service-requests/officer/**")
                     .hasAnyRole(SERVICE_OFFICER, DEPARTMENT_HEAD, CITY_ADMINISTRATOR)
                 .requestMatchers(HttpMethod.GET, "/api/v1/service-requests")
-                    .hasAnyRole(SERVICE_OFFICER, DEPARTMENT_HEAD, CITY_ADMINISTRATOR)
+                    .hasAnyRole(SERVICE_OFFICER, DEPARTMENT_HEAD, CITY_ADMINISTRATOR, COMPLIANCE_OFFICER)
 
                 // ── CITIZEN only: write actions ────────────────────────────
                 .requestMatchers(HttpMethod.POST,   "/api/v1/service-requests")
@@ -62,8 +63,10 @@ public class SecurityConfig {
                     .hasRole(CITIZEN)
 
                 // ── Shared reads ───────────────────────────────────────────
+                // COMPLIANCE_OFFICER needs GET access to verify a request is
+                // CLOSED before creating a compliance record on it.
                 .requestMatchers(HttpMethod.GET, "/api/v1/service-requests/**")
-                    .hasAnyRole(CITIZEN, SERVICE_OFFICER, DEPARTMENT_HEAD, CITY_ADMINISTRATOR)
+                    .hasAnyRole(CITIZEN, SERVICE_OFFICER, DEPARTMENT_HEAD, CITY_ADMINISTRATOR, COMPLIANCE_OFFICER)
 
                 .anyRequest().denyAll()
             )

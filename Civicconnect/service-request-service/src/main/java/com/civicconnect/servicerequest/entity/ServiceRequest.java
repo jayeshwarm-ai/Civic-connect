@@ -55,8 +55,17 @@ public class ServiceRequest {
     @Column(nullable = false, length = 1000)
     private String description;
 
-    @Column(nullable = false)
-    private String location;
+    /** Indian state, e.g. "Tamil Nadu". Selected from a fixed list on the frontend. */
+    @Column(nullable = false, length = 60)
+    private String state;
+
+    /** City within the selected state, e.g. "Chennai". */
+    @Column(nullable = false, length = 80)
+    private String city;
+
+    /** Free-form street address typed by the citizen. */
+    @Column(nullable = false, length = 255)
+    private String address;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

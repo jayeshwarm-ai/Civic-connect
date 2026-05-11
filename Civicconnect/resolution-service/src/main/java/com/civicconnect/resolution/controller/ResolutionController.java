@@ -53,7 +53,7 @@ public class ResolutionController {
     @Operation(summary = "Get resolution by ID")
     @ApiResponse(responseCode = "200", description = "Resolution found")
     @ApiResponse(responseCode = "404", description = "Resolution not found")
-    @PreAuthorize("hasAnyRole('SERVICE_OFFICER','DEPARTMENT_HEAD','CITY_ADMINISTRATOR')")
+    @PreAuthorize("hasAnyRole('SERVICE_OFFICER','DEPARTMENT_HEAD','CITY_ADMINISTRATOR','COMPLIANCE_OFFICER')")
     @GetMapping("/{resolutionId}")
     public ResponseEntity<ResolutionResponse> getResolutionById(@PathVariable Long resolutionId) {
         return ResponseEntity.ok(resolutionService.getResolutionById(resolutionId));
@@ -63,7 +63,7 @@ public class ResolutionController {
     @Operation(summary = "Get resolution by service request ID")
     @ApiResponse(responseCode = "200", description = "Resolution found")
     @ApiResponse(responseCode = "404", description = "No resolution for this request")
-    @PreAuthorize("hasAnyRole('SERVICE_OFFICER','DEPARTMENT_HEAD','CITY_ADMINISTRATOR')")
+    @PreAuthorize("hasAnyRole('SERVICE_OFFICER','DEPARTMENT_HEAD','CITY_ADMINISTRATOR','COMPLIANCE_OFFICER')")
     @GetMapping("/by-request/{requestId}")
     public ResponseEntity<ResolutionResponse> getResolutionByRequestId(
             @PathVariable Long requestId) {
@@ -73,7 +73,7 @@ public class ResolutionController {
     // ── GET /api/v1/resolutions/officer/{officerId} ───────────────────────────
     @Operation(summary = "Get all resolutions by officer")
     @ApiResponse(responseCode = "200", description = "List returned")
-    @PreAuthorize("hasAnyRole('SERVICE_OFFICER','DEPARTMENT_HEAD','CITY_ADMINISTRATOR')")
+    @PreAuthorize("hasAnyRole('SERVICE_OFFICER','DEPARTMENT_HEAD','CITY_ADMINISTRATOR','COMPLIANCE_OFFICER')")
     @GetMapping("/officer/{officerId}")
     public ResponseEntity<List<ResolutionResponse>> getResolutionsByOfficerId(
             @PathVariable Long officerId) {
@@ -102,7 +102,7 @@ public class ResolutionController {
     // ── GET /api/v1/resolutions/{resolutionId}/steps ──────────────────────────
     @Operation(summary = "Get all workflow steps for a resolution")
     @ApiResponse(responseCode = "200", description = "Steps returned")
-    @PreAuthorize("hasAnyRole('SERVICE_OFFICER','DEPARTMENT_HEAD','CITY_ADMINISTRATOR')")
+    @PreAuthorize("hasAnyRole('SERVICE_OFFICER','DEPARTMENT_HEAD','CITY_ADMINISTRATOR','COMPLIANCE_OFFICER')")
     @GetMapping("/{resolutionId}/steps")
     public ResponseEntity<List<WorkflowStepResponse>> getWorkflowSteps(
             @PathVariable Long resolutionId) {

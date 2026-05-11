@@ -86,7 +86,7 @@ public class ServiceRequestController {
     // ── PUT /{requestId} — CITIZEN only (edit SUBMITTED request) ────────────
     @Operation(
         summary = "Edit a submitted request — CITIZEN only",
-        description = "Citizen can edit type, description, and location of a SUBMITTED request."
+        description = "Citizen can edit type, description, state, city, and address of a SUBMITTED request."
     )
     @ApiResponse(responseCode = "200", description = "Request updated")
     @ApiResponse(responseCode = "400", description = "Not SUBMITTED or not your request")
@@ -123,7 +123,7 @@ public class ServiceRequestController {
     @ApiResponse(responseCode = "200", description = "Request found")
     @ApiResponse(responseCode = "403", description = "This request is not yours")
     @ApiResponse(responseCode = "404", description = "Request not found")
-    @PreAuthorize("hasAnyRole('CITIZEN','SERVICE_OFFICER','DEPARTMENT_HEAD','CITY_ADMINISTRATOR')")
+    @PreAuthorize("hasAnyRole('CITIZEN','SERVICE_OFFICER','DEPARTMENT_HEAD','CITY_ADMINISTRATOR','COMPLIANCE_OFFICER')")
     @GetMapping("/{requestId}")
     public ResponseEntity<ServiceRequestResponse> getRequestById(
             @PathVariable Long requestId,
@@ -150,7 +150,7 @@ public class ServiceRequestController {
         description = "Citizens can only view updates for their own requests. Officers and admins can view any request updates."
     )
     @ApiResponse(responseCode = "403", description = "This request is not yours")
-    @PreAuthorize("hasAnyRole('CITIZEN','SERVICE_OFFICER','DEPARTMENT_HEAD','CITY_ADMINISTRATOR')")
+    @PreAuthorize("hasAnyRole('CITIZEN','SERVICE_OFFICER','DEPARTMENT_HEAD','CITY_ADMINISTRATOR','COMPLIANCE_OFFICER')")
     @GetMapping("/{requestId}/updates")
     public ResponseEntity<List<RequestUpdateResponse>> getRequestUpdates(
             @PathVariable Long requestId,
@@ -174,7 +174,7 @@ public class ServiceRequestController {
         description = "SERVICE_OFFICER sees only their assigned requests. "
                     + "DEPARTMENT_HEAD and CITY_ADMINISTRATOR see all requests."
     )
-    @PreAuthorize("hasAnyRole('SERVICE_OFFICER','DEPARTMENT_HEAD','CITY_ADMINISTRATOR')")
+    @PreAuthorize("hasAnyRole('SERVICE_OFFICER','DEPARTMENT_HEAD','CITY_ADMINISTRATOR','COMPLIANCE_OFFICER')")
     @GetMapping
     public ResponseEntity<List<ServiceRequestResponse>> getRequestsByStatus(
             @Parameter(description = "SUBMITTED | ASSIGNED | IN_PROGRESS | RESOLVED | CLOSED")

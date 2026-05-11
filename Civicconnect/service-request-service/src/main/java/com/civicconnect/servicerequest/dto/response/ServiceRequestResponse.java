@@ -18,7 +18,9 @@ public class ServiceRequestResponse {
     private String               assignedOfficerName;
     private ServiceRequestType   type;
     private String               description;
-    private String               location;
+    private String               state;
+    private String               city;
+    private String               address;
     private ServiceRequestStatus status;
     private LocalDateTime        createdAt;
     private LocalDateTime        updatedAt;

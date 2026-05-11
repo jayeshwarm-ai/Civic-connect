@@ -43,15 +43,34 @@ public class ComplianceServiceImpl implements ComplianceService {
     public ComplianceRecordResponse createComplianceRecord(CreateComplianceRecordRequest request, Long officerUserId) {
         UserValidationResponse officer = identityFeignClient.validateUser(officerUserId);
         if (!officer.isExists()) throw new ResourceNotFoundException("User", officerUserId);
-        if (!"COMPLIANCE_OFFICER".equals(officer.getRole()))
-            throw new InvalidOperationException("Only COMPLIANCE_OFFICERs can create compliance records.");
+        // Both COMPLIANCE_OFFICER and CITY_ADMINISTRATOR can file compliance records.
+        // City admins act as auditors and need parity with compliance officers for oversight.
+        if (!"COMPLIANCE_OFFICER".equals(officer.getRole())
+                && !"CITY_ADMINISTRATOR".equals(officer.getRole()))
+            throw new InvalidOperationException("Only COMPLIANCE_OFFICER or CITY_ADMINISTRATOR can create compliance records.");
 
         if (request.getType() == ComplianceType.REQUEST) {
             ServiceRequestValidationResponse sr = serviceRequestFeignClient.getRequest(request.getEntityId());
             if (!sr.isExists()) throw new ResourceNotFoundException("ServiceRequest not found with id: " + request.getEntityId());
+            // A compliance record can only be filed once the citizen has confirmed closure of the request.
+            // Blocks records being created on SUBMITTED / ASSIGNED / IN_PROGRESS / RESOLVED requests.
+            if (!"CLOSED".equalsIgnoreCase(sr.getStatus())) {
+                throw new InvalidOperationException(
+                        "Compliance records can only be created for CLOSED service requests. "
+                        + "Request #" + request.getEntityId() + " is currently in '" + sr.getStatus() + "' state."
+                );
+            }
         } else if (request.getType() == ComplianceType.RESOLUTION) {
             ResolutionValidationResponse res = resolutionFeignClient.getResolution(request.getEntityId());
             if (!res.isExists()) throw new ResourceNotFoundException("Resolution not found with id: " + request.getEntityId());
+            // A compliance record can only be filed once the resolution is fully completed.
+            // Blocks records being created on IN_PROGRESS resolutions.
+            if (!"COMPLETED".equalsIgnoreCase(res.getStatus())) {
+                throw new InvalidOperationException(
+                        "Compliance records can only be created for COMPLETED resolutions. "
+                        + "Resolution #" + request.getEntityId() + " is currently in '" + res.getStatus() + "' state."
+                );
+            }
         }
 
         ComplianceRecord record = ComplianceRecord.builder()
@@ -99,8 +118,10 @@ public class ComplianceServiceImpl implements ComplianceService {
     public AuditRecordResponse createAuditRecord(CreateAuditRecordRequest request, Long officerUserId) {
         UserValidationResponse officer = identityFeignClient.validateUser(officerUserId);
         if (!officer.isExists()) throw new ResourceNotFoundException("User", officerUserId);
-        if (!"COMPLIANCE_OFFICER".equals(officer.getRole()))
-            throw new InvalidOperationException("Only COMPLIANCE_OFFICERs can create audit records.");
+        // Both COMPLIANCE_OFFICER and CITY_ADMINISTRATOR can create audits.
+        if (!"COMPLIANCE_OFFICER".equals(officer.getRole())
+                && !"CITY_ADMINISTRATOR".equals(officer.getRole()))
+            throw new InvalidOperationException("Only COMPLIANCE_OFFICER or CITY_ADMINISTRATOR can create audit records.");
 
         AuditRecord auditRecord = AuditRecord.builder()
                 .officerUserId(officerUserId).officerName(officer.getName()).scope(request.getScope())
@@ -118,8 +139,13 @@ public class ComplianceServiceImpl implements ComplianceService {
         AuditRecord auditRecord = auditRecordRepository.findById(auditId)
                 .orElseThrow(() -> new ResourceNotFoundException("AuditRecord", auditId));
 
-        if (!auditRecord.getOfficerUserId().equals(officerUserId))
-            throw new InvalidOperationException("Only the officer who created this audit can update it.");
+        // Allow the original officer OR a CITY_ADMINISTRATOR to update the audit.
+        // Admins need oversight powers — they should be able to close/edit any audit.
+        UserValidationResponse caller = identityFeignClient.validateUser(officerUserId);
+        boolean isOriginalOfficer = auditRecord.getOfficerUserId().equals(officerUserId);
+        boolean isCityAdmin       = caller.isExists() && "CITY_ADMINISTRATOR".equals(caller.getRole());
+        if (!isOriginalOfficer && !isCityAdmin)
+            throw new InvalidOperationException("Only the officer who created this audit, or a City Administrator, can update it.");
         if (auditRecord.getStatus() == AuditStatus.CLOSED)
             throw new InvalidOperationException("Cannot update a CLOSED audit record.");
 

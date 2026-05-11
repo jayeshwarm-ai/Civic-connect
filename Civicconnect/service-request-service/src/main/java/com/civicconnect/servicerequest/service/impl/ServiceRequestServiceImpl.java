@@ -60,14 +60,18 @@ public class ServiceRequestServiceImpl implements ServiceRequestService {
                 .citizenUserId(citizenUserId)
                 .type(request.getType())
                 .description(request.getDescription())
-                .location(request.getLocation())
+                .state(request.getState())
+                .city(request.getCity())
+                .address(request.getAddress())
                 .build();
 
         serviceRequest = serviceRequestRepository.save(serviceRequest);
 
+        String locationLog = request.getCity() + ", " + request.getState();
+
         writeAuditLog(citizenUserId, "SERVICE_REQUEST_CREATED",
                 "SERVICE_REQUEST", String.valueOf(serviceRequest.getRequestId()),
-                "Type: " + request.getType() + " | Location: " + request.getLocation());
+                "Type: " + request.getType() + " | Location: " + locationLog);
 
         sendNotification(citizenUserId, serviceRequest.getRequestId(),
                 "Your service request #" + serviceRequest.getRequestId() + " has been submitted successfully.",
@@ -77,7 +81,7 @@ public class ServiceRequestServiceImpl implements ServiceRequestService {
                 "📋 New service request #" + serviceRequest.getRequestId()
                 + " submitted by " + citizen.getName()
                 + " | Type: " + request.getType()
-                + " | Location: " + request.getLocation());
+                + " | Location: " + locationLog);
 
         return mapToResponse(serviceRequest);
     }
@@ -248,7 +252,9 @@ public class ServiceRequestServiceImpl implements ServiceRequestService {
 
         serviceRequest.setType(request.getType());
         serviceRequest.setDescription(request.getDescription());
-        serviceRequest.setLocation(request.getLocation());
+        serviceRequest.setState(request.getState());
+        serviceRequest.setCity(request.getCity());
+        serviceRequest.setAddress(request.getAddress());
 
         ServiceRequest saved = serviceRequestRepository.save(serviceRequest);
         log.info("Service request #{} updated by citizen userId={}", requestId, citizenUserId);
@@ -274,7 +280,8 @@ public class ServiceRequestServiceImpl implements ServiceRequestService {
                 .map(GrantedAuthority::getAuthority)
                 .anyMatch(role -> role.equals("ROLE_SERVICE_OFFICER") ||
                                   role.equals("ROLE_DEPARTMENT_HEAD") ||
-                                  role.equals("ROLE_CITY_ADMINISTRATOR"));
+                                  role.equals("ROLE_CITY_ADMINISTRATOR") ||
+                                  role.equals("ROLE_COMPLIANCE_OFFICER"));
 
         if (!isOfficer && !serviceRequest.getCitizenUserId().equals(loggedInUserId)) {
             throw new InvalidOperationException("This request is not yours");
@@ -351,7 +358,9 @@ public class ServiceRequestServiceImpl implements ServiceRequestService {
                                                              Collection<? extends GrantedAuthority> authorities) {
         boolean isAdmin = authorities.stream()
                 .map(GrantedAuthority::getAuthority)
-                .anyMatch(role -> role.equals("ROLE_DEPARTMENT_HEAD") || role.equals("ROLE_CITY_ADMINISTRATOR"));
+                .anyMatch(role -> role.equals("ROLE_DEPARTMENT_HEAD")
+                        || role.equals("ROLE_CITY_ADMINISTRATOR")
+                        || role.equals("ROLE_COMPLIANCE_OFFICER"));
 
         if (isAdmin) {
             return serviceRequestRepository.findByStatusOrderByCreatedAtAsc(status)
@@ -379,7 +388,8 @@ public class ServiceRequestServiceImpl implements ServiceRequestService {
                 .map(GrantedAuthority::getAuthority)
                 .anyMatch(role -> role.equals("ROLE_SERVICE_OFFICER") ||
                                   role.equals("ROLE_DEPARTMENT_HEAD") ||
-                                  role.equals("ROLE_CITY_ADMINISTRATOR"));
+                                  role.equals("ROLE_CITY_ADMINISTRATOR") ||
+                                  role.equals("ROLE_COMPLIANCE_OFFICER"));
 
         if (!isOfficer && !serviceRequest.getCitizenUserId().equals(loggedInUserId)) {
             throw new InvalidOperationException("This request is not yours");
@@ -453,7 +463,9 @@ public class ServiceRequestServiceImpl implements ServiceRequestService {
                 .assignedOfficerName(sr.getAssignedOfficerName())
                 .type(sr.getType())
                 .description(sr.getDescription())
-                .location(sr.getLocation())
+                .state(sr.getState())
+                .city(sr.getCity())
+                .address(sr.getAddress())
                 .status(sr.getStatus())
                 .createdAt(sr.getCreatedAt())
                 .updatedAt(sr.getUpdatedAt())

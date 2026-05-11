@@ -10,7 +10,25 @@ spring:
   config:
     import: optional:configserver:http://localhost:8888
   cloud:
+    # ──────────────────────────────────────────────────────────────────────
+    # IMPORTANT: disable automatic LoadBalancer retry.
+    # Without this, a POST that fails because Eureka has not yet discovered
+    # an instance gets retried by the gateway — and the retry can succeed.
+    # The user's manual retry then creates a SECOND row in the database.
+    # ──────────────────────────────────────────────────────────────────────
+    loadbalancer:
+      retry:
+        enabled: false
     gateway:
+      # ──────────────────────────────────────────────────────────────────────
+      # Global HTTP client timeouts — prevent the gateway from giving up on
+      # downstream services too early. Default connect timeout is 45s (fine)
+      # but response-timeout defaults to no limit. Setting it explicitly to
+      # match the TimeLimiter so behaviour is predictable.
+      # ──────────────────────────────────────────────────────────────────────
+      httpclient:
+        connect-timeout: 5000
+        response-timeout: 10s
       # ──────────────────────────────────────────────────────────────────────
       # Global CORS – allow frontend (Angular/React) on any localhost port
       # ──────────────────────────────────────────────────────────────────────
@@ -189,6 +207,10 @@ spring:
             - name: RateLimiter
               args:
                 rateLimiterName: defaultRateLimiter
+            - name: CircuitBreaker
+              args:
+                name: identityServiceCB
+                fallbackUri: forward:/fallback/identity
         - id: notification-service
           uri: lb://notification-service
           predicates:
@@ -269,10 +291,13 @@ eureka:
     service-url:
       defaultZone: http://localhost:8761/eureka/
     registry-fetch-interval-seconds: 5
+    # Wait for the local registry cache to populate before starting to route.
+    # This lets backend services finish registering before the gateway accepts traffic.
+    initial-instance-info-replication-interval-seconds: 5
   instance:
     prefer-ip-address: true
-    lease-renewal-interval-in-seconds: 10
-    lease-expiration-duration-in-seconds: 30
+    lease-renewal-interval-in-seconds: 5      # was 10 — heartbeat more often
+    lease-expiration-duration-in-seconds: 15  # was 30 — drop stale instances faster
 
 # ──────────────────────────────────────────────────────────────────────────────
 # JWT (gateway validates tokens BEFORE forwarding to downstream services)
@@ -284,6 +309,47 @@ jwt:
 # Resilience4j – circuit breakers & rate limiters
 # ──────────────────────────────────────────────────────────────────────────────
 resilience4j:
+  # ── Time Limiter ───────────────────────────────────────────────────────────
+  # Spring Cloud Gateway's CircuitBreaker filter uses a TimeLimiter internally.
+  # The DEFAULT is 1 second — any downstream call slower than 1s is cancelled
+  # and treated as a failure. This causes the "action done but error shown"
+  # problem because:
+  #   1. Gateway dispatches the request to the downstream service
+  #   2. TimeLimiter times out after 1s and fires the fallback (503)
+  #   3. The downstream service finishes the work anyway (action IS done)
+  #   4. User sees "service unavailable" even though everything worked
+  #   5. User clicks again → second request is fast (service warmed up) → success
+  #      but now the action has been done TWICE
+  #
+  # Fix: raise the timeout to 10s so real service calls aren't killed prematurely.
+  # ────────────────────────────────────────────────────────────────────────────
+  timelimiter:
+    instances:
+      identityServiceCB:
+        timeout-duration: 10s
+        cancel-running-future: false
+      citizenServiceCB:
+        timeout-duration: 10s
+        cancel-running-future: false
+      serviceRequestServiceCB:
+        timeout-duration: 10s
+        cancel-running-future: false
+      resolutionServiceCB:
+        timeout-duration: 10s
+        cancel-running-future: false
+      feedbackServiceCB:
+        timeout-duration: 10s
+        cancel-running-future: false
+      complianceServiceCB:
+        timeout-duration: 10s
+        cancel-running-future: false
+      reportingServiceCB:
+        timeout-duration: 10s
+        cancel-running-future: false
+      notificationServiceCB:
+        timeout-duration: 10s
+        cancel-running-future: false
+
   # ── Rate Limiters ──────────────────────────────────────────────────────────
   ratelimiter:
     instances:
@@ -310,52 +376,76 @@ resilience4j:
   circuitbreaker:
     instances:
       identityServiceCB:
-        sliding-window-size: 10
+        sliding-window-size: 20
+        minimum-number-of-calls: 5
         failure-rate-threshold: 50
-        wait-duration-in-open-state: 10s
-        permitted-number-of-calls-in-half-open-state: 3
+        slow-call-duration-threshold: 8s
+        slow-call-rate-threshold: 80
+        wait-duration-in-open-state: 15s
+        permitted-number-of-calls-in-half-open-state: 5
         automatic-transition-from-open-to-half-open-enabled: true
       citizenServiceCB:
-        sliding-window-size: 10
+        sliding-window-size: 20
+        minimum-number-of-calls: 5
         failure-rate-threshold: 50
-        wait-duration-in-open-state: 10s
-        permitted-number-of-calls-in-half-open-state: 3
+        slow-call-duration-threshold: 8s
+        slow-call-rate-threshold: 80
+        wait-duration-in-open-state: 15s
+        permitted-number-of-calls-in-half-open-state: 5
         automatic-transition-from-open-to-half-open-enabled: true
       serviceRequestServiceCB:
-        sliding-window-size: 10
+        sliding-window-size: 20
+        minimum-number-of-calls: 5
         failure-rate-threshold: 50
-        wait-duration-in-open-state: 10s
-        permitted-number-of-calls-in-half-open-state: 3
+        slow-call-duration-threshold: 8s
+        slow-call-rate-threshold: 80
+        wait-duration-in-open-state: 15s
+        permitted-number-of-calls-in-half-open-state: 5
         automatic-transition-from-open-to-half-open-enabled: true
       resolutionServiceCB:
-        sliding-window-size: 10
+        sliding-window-size: 20
+        minimum-number-of-calls: 5
         failure-rate-threshold: 50
-        wait-duration-in-open-state: 10s
-        permitted-number-of-calls-in-half-open-state: 3
+        slow-call-duration-threshold: 8s
+        slow-call-rate-threshold: 80
+        wait-duration-in-open-state: 15s
+        permitted-number-of-calls-in-half-open-state: 5
         automatic-transition-from-open-to-half-open-enabled: true
       feedbackServiceCB:
-        sliding-window-size: 10
+        sliding-window-size: 20
+        minimum-number-of-calls: 5
         failure-rate-threshold: 50
-        wait-duration-in-open-state: 10s
-        permitted-number-of-calls-in-half-open-state: 3
+        slow-call-duration-threshold: 8s
+        slow-call-rate-threshold: 80
+        wait-duration-in-open-state: 15s
+        permitted-number-of-calls-in-half-open-state: 5
         automatic-transition-from-open-to-half-open-enabled: true
       complianceServiceCB:
-        sliding-window-size: 10
+        sliding-window-size: 20
+        minimum-number-of-calls: 5
         failure-rate-threshold: 50
-        wait-duration-in-open-state: 10s
-        permitted-number-of-calls-in-half-open-state: 3
+        slow-call-duration-threshold: 8s
+        slow-call-rate-threshold: 80
+        wait-duration-in-open-state: 15s
+        permitted-number-of-calls-in-half-open-state: 5
         automatic-transition-from-open-to-half-open-enabled: true
       reportingServiceCB:
-        sliding-window-size: 10
+        sliding-window-size: 20
+        minimum-number-of-calls: 5
         failure-rate-threshold: 50
-        wait-duration-in-open-state: 10s
-        permitted-number-of-calls-in-half-open-state: 3
+        slow-call-duration-threshold: 8s
+        slow-call-rate-threshold: 80
+        wait-duration-in-open-state: 15s
+        permitted-number-of-calls-in-half-open-state: 5
         automatic-transition-from-open-to-half-open-enabled: true
       notificationServiceCB:
-        sliding-window-size: 10
+        sliding-window-size: 20
+        minimum-number-of-calls: 5
         failure-rate-threshold: 50
-        wait-duration-in-open-state: 10s
-        permitted-number-of-calls-in-half-open-state: 3
+        slow-call-duration-threshold: 8s
+        slow-call-rate-threshold: 80
+        wait-duration-in-open-state: 15s
+        permitted-number-of-calls-in-half-open-state: 5
         automatic-transition-from-open-to-half-open-enabled: true
 
 # ──────────────────────────────────────────────────────────────────────────────

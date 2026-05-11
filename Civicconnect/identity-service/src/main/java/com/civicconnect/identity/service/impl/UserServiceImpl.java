@@ -2,6 +2,7 @@ package com.civicconnect.identity.service.impl;
 
 import com.civicconnect.identity.audit.AuditLogService;
 import com.civicconnect.identity.dto.request.CreateStaffRequest;
+import com.civicconnect.identity.dto.request.UpdateMyProfileRequest;
 import com.civicconnect.identity.dto.response.StaffResponse;
 import com.civicconnect.identity.entity.User;
 import com.civicconnect.identity.enums.AuditAction;
@@ -126,6 +127,63 @@ public class UserServiceImpl implements UserService {
 
         auditLogService.log(adminId, AuditAction.STAFF_STATUS_UPDATED, "USER",
                 String.valueOf(userId), "Status updated to: " + newStatus + " by adminId: " + adminId);
+
+        return mapToStaffResponse(user);
+    }
+
+    /**
+     * Returns the current authenticated user's own profile.
+     * Works for any staff role. Citizens use the citizen-service profile API instead.
+     */
+    @Override
+    public StaffResponse getMyProfile(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
+        return mapToStaffResponse(user);
+    }
+
+    /**
+     * Lets a staff user (Service Officer / Department Head / Compliance Officer)
+     * update their own email and phone.
+     *
+     * Rules:
+     *   • CITY_ADMINISTRATOR cannot use this endpoint — admin profiles are
+     *     managed centrally and cannot be self-edited.
+     *   • CITIZEN should never reach this endpoint (their JWT role isn't allowed
+     *     by the controller's @PreAuthorize), but we double-check here.
+     *   • Email and phone uniqueness is preserved; trying to take another user's
+     *     email or phone is rejected with 409.
+     */
+    @Override
+    @Transactional
+    public StaffResponse updateMyProfile(Long userId, UpdateMyProfileRequest request) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
+
+        if (user.getRole() == Role.CITY_ADMINISTRATOR) {
+            throw new InvalidOperationException("City Administrator profiles cannot be self-edited.");
+        }
+        if (user.getRole() == Role.CITIZEN) {
+            throw new InvalidOperationException("Citizens must use the citizen-service profile endpoint.");
+        }
+
+        // Uniqueness checks — only complain when the value is changing
+        if (!user.getEmail().equalsIgnoreCase(request.getEmail())
+                && userRepository.existsByEmail(request.getEmail())) {
+            throw new DuplicateResourceException("Email already in use: " + request.getEmail());
+        }
+        if (!user.getPhone().equals(request.getPhone())
+                && userRepository.existsByPhone(request.getPhone())) {
+            throw new DuplicateResourceException("Phone already in use: " + request.getPhone());
+        }
+
+        user.setEmail(request.getEmail());
+        user.setPhone(request.getPhone());
+        userRepository.save(user);
+
+        auditLogService.log(userId, AuditAction.STAFF_PROFILE_UPDATED, "USER",
+                String.valueOf(userId),
+                "Self-update of email/phone by userId: " + userId);
 
         return mapToStaffResponse(user);
     }
