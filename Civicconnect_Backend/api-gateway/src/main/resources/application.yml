@@ -1,0 +1,497 @@
+server:
+  port: 9999
+  max-http-header-size: 16KB
+  netty:
+    max-initial-line-length: 16384
+
+spring:
+  application:
+    name: api-gateway
+  config:
+    import: optional:configserver:http://localhost:8888
+  cloud:
+    # ──────────────────────────────────────────────────────────────────────
+    # IMPORTANT: disable automatic LoadBalancer retry.
+    # Without this, a POST that fails because Eureka has not yet discovered
+    # an instance gets retried by the gateway — and the retry can succeed.
+    # The user's manual retry then creates a SECOND row in the database.
+    # ──────────────────────────────────────────────────────────────────────
+    loadbalancer:
+      retry:
+        enabled: false
+    gateway:
+      # ──────────────────────────────────────────────────────────────────────
+      # Global HTTP client timeouts — prevent the gateway from giving up on
+      # downstream services too early. Default connect timeout is 45s (fine)
+      # but response-timeout defaults to no limit. Setting it explicitly to
+      # match the TimeLimiter so behaviour is predictable.
+      # ──────────────────────────────────────────────────────────────────────
+      httpclient:
+        connect-timeout: 5000
+        response-timeout: 10s
+      # ──────────────────────────────────────────────────────────────────────
+      # Global CORS – allow frontend (Angular/React) on any localhost port
+      # ──────────────────────────────────────────────────────────────────────
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins:
+              - "http://localhost:4200"
+              - "http://localhost:3000"
+              - "http://localhost:3001"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - PATCH
+              - DELETE
+              - OPTIONS
+            allowedHeaders: "*"
+            allowCredentials: true
+
+      # ──────────────────────────────────────────────────────────────────────
+      # Default filters applied to every route
+      # ──────────────────────────────────────────────────────────────────────
+      default-filters:
+        - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
+
+      # ──────────────────────────────────────────────────────────────────────
+      # Routes  (lb:// = load-balanced via Eureka)
+      # ──────────────────────────────────────────────────────────────────────
+      routes:
+
+        # ── Identity Service ────────────────────────────────────────────────
+        - id: identity-service-auth
+          uri: lb://identity-service
+          predicates:
+            - Path=/api/v1/auth/**
+          filters:
+            - name: RateLimiter
+              args:
+                rateLimiterName: authRateLimiter
+            - name: CircuitBreaker
+              args:
+                name: identityServiceCB
+                fallbackUri: forward:/fallback/identity
+
+        - id: identity-service-iam
+          uri: lb://identity-service
+          predicates:
+            - Path=/api/v1/iam/**
+          filters:
+            - name: RateLimiter
+              args:
+                rateLimiterName: defaultRateLimiter
+            - name: CircuitBreaker
+              args:
+                name: identityServiceCB
+                fallbackUri: forward:/fallback/identity
+
+        - id: identity-service-users
+          uri: lb://identity-service
+          predicates:
+            - Path=/api/v1/users/**
+          filters:
+            - name: RateLimiter
+              args:
+                rateLimiterName: defaultRateLimiter
+            - name: CircuitBreaker
+              args:
+                name: identityServiceCB
+                fallbackUri: forward:/fallback/identity
+
+        # ── Citizen Service (register is public) ────────────────────────────
+        - id: citizen-service-register
+          uri: lb://citizen-service
+          predicates:
+            - Path=/api/v1/citizens/register
+            - Method=POST
+          filters:
+            - name: RateLimiter
+              args:
+                rateLimiterName: registerRateLimiter
+            - name: CircuitBreaker
+              args:
+                name: citizenServiceCB
+                fallbackUri: forward:/fallback/citizen
+
+        - id: citizen-service
+          uri: lb://citizen-service
+          predicates:
+            - Path=/api/v1/citizens/**
+          filters:
+            - name: RateLimiter
+              args:
+                rateLimiterName: serviceRateLimiter
+            - name: CircuitBreaker
+              args:
+                name: citizenServiceCB
+                fallbackUri: forward:/fallback/citizen
+
+        # ── Service Request Service ─────────────────────────────────────────
+        - id: service-request-service
+          uri: lb://service-request-service
+          predicates:
+            - Path=/api/v1/service-requests/**
+          filters:
+            - name: RateLimiter
+              args:
+                rateLimiterName: serviceRateLimiter
+            - name: CircuitBreaker
+              args:
+                name: serviceRequestServiceCB
+                fallbackUri: forward:/fallback/service-request
+
+        # ── Resolution Service ──────────────────────────────────────────────
+        - id: resolution-service
+          uri: lb://resolution-service
+          predicates:
+            - Path=/api/v1/resolutions/**
+          filters:
+            - name: RateLimiter
+              args:
+                rateLimiterName: serviceRateLimiter
+            - name: CircuitBreaker
+              args:
+                name: resolutionServiceCB
+                fallbackUri: forward:/fallback/resolution
+
+        # ── Feedback Service ────────────────────────────────────────────────
+        - id: feedback-service
+          uri: lb://feedback-service
+          predicates:
+            - Path=/api/v1/feedback/**
+          filters:
+            - name: RateLimiter
+              args:
+                rateLimiterName: serviceRateLimiter
+            - name: CircuitBreaker
+              args:
+                name: feedbackServiceCB
+                fallbackUri: forward:/fallback/feedback
+
+        # ── Compliance Service ───────────────────────────────────────────────
+        - id: compliance-service
+          uri: lb://compliance-service
+          predicates:
+            - Path=/api/v1/compliance/**
+          filters:
+            - name: RateLimiter
+              args:
+                rateLimiterName: serviceRateLimiter
+            - name: CircuitBreaker
+              args:
+                name: complianceServiceCB
+                fallbackUri: forward:/fallback/compliance
+
+        # ── Reporting Service ────────────────────────────────────────────────
+        - id: reporting-service
+          uri: lb://reporting-service
+          predicates:
+            - Path=/api/v1/reports/**
+          filters:
+            - name: RateLimiter
+              args:
+                rateLimiterName: serviceRateLimiter
+            - name: CircuitBreaker
+              args:
+                name: reportingServiceCB
+                fallbackUri: forward:/fallback/reporting
+
+        # ── Notification Service ─────────────────────────────────────────────
+        - id: identity-service-audit-records
+          uri: lb://identity-service
+          predicates:
+            - Path=/api/v1/audit-records/**
+          filters:
+            - name: RateLimiter
+              args:
+                rateLimiterName: defaultRateLimiter
+            - name: CircuitBreaker
+              args:
+                name: identityServiceCB
+                fallbackUri: forward:/fallback/identity
+        - id: notification-service
+          uri: lb://notification-service
+          predicates:
+            - Path=/api/v1/notifications/**
+          filters:
+            - name: RateLimiter
+              args:
+                rateLimiterName: serviceRateLimiter
+            - name: CircuitBreaker
+              args:
+                name: notificationServiceCB
+                fallbackUri: forward:/fallback/notification
+
+        # ── Swagger/OpenAPI routes for each service ──────────────────────────
+        - id: identity-service-api-docs
+          uri: lb://identity-service
+          predicates:
+            - Path=/v3/api-docs/identity-service
+          filters:
+            - RewritePath=/v3/api-docs/identity-service, /api-docs
+
+        - id: citizen-service-api-docs
+          uri: lb://citizen-service
+          predicates:
+            - Path=/v3/api-docs/citizen-service
+          filters:
+            - RewritePath=/v3/api-docs/citizen-service, /api-docs
+
+        - id: service-request-service-api-docs
+          uri: lb://service-request-service
+          predicates:
+            - Path=/v3/api-docs/service-request-service
+          filters:
+            - RewritePath=/v3/api-docs/service-request-service, /api-docs
+
+        - id: resolution-service-api-docs
+          uri: lb://resolution-service
+          predicates:
+            - Path=/v3/api-docs/resolution-service
+          filters:
+            - RewritePath=/v3/api-docs/resolution-service, /api-docs
+
+        - id: feedback-service-api-docs
+          uri: lb://feedback-service
+          predicates:
+            - Path=/v3/api-docs/feedback-service
+          filters:
+            - RewritePath=/v3/api-docs/feedback-service, /api-docs
+
+        - id: compliance-service-api-docs
+          uri: lb://compliance-service
+          predicates:
+            - Path=/v3/api-docs/compliance-service
+          filters:
+            - RewritePath=/v3/api-docs/compliance-service, /api-docs
+
+        - id: reporting-service-api-docs
+          uri: lb://reporting-service
+          predicates:
+            - Path=/v3/api-docs/reporting-service
+          filters:
+            - RewritePath=/v3/api-docs/reporting-service, /api-docs
+
+        - id: notification-service-api-docs
+          uri: lb://notification-service
+          predicates:
+            - Path=/v3/api-docs/notification-service
+          filters:
+            - RewritePath=/v3/api-docs/notification-service, /api-docs
+
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Eureka
+# ──────────────────────────────────────────────────────────────────────────────
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+    registry-fetch-interval-seconds: 5
+    # Wait for the local registry cache to populate before starting to route.
+    # This lets backend services finish registering before the gateway accepts traffic.
+    initial-instance-info-replication-interval-seconds: 5
+  instance:
+    prefer-ip-address: true
+    lease-renewal-interval-in-seconds: 5      # was 10 — heartbeat more often
+    lease-expiration-duration-in-seconds: 15  # was 30 — drop stale instances faster
+
+# ──────────────────────────────────────────────────────────────────────────────
+# JWT (gateway validates tokens BEFORE forwarding to downstream services)
+# ──────────────────────────────────────────────────────────────────────────────
+jwt:
+  secret: dGhpcy1pcy1hLXZlcnktc2VjdXJlLWtleS1mb3ItY2l2aWNjb25uZWN0LWp3dC0yMDI0
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Resilience4j – circuit breakers & rate limiters
+# ──────────────────────────────────────────────────────────────────────────────
+resilience4j:
+  # ── Time Limiter ───────────────────────────────────────────────────────────
+  # Spring Cloud Gateway's CircuitBreaker filter uses a TimeLimiter internally.
+  # The DEFAULT is 1 second — any downstream call slower than 1s is cancelled
+  # and treated as a failure. This causes the "action done but error shown"
+  # problem because:
+  #   1. Gateway dispatches the request to the downstream service
+  #   2. TimeLimiter times out after 1s and fires the fallback (503)
+  #   3. The downstream service finishes the work anyway (action IS done)
+  #   4. User sees "service unavailable" even though everything worked
+  #   5. User clicks again → second request is fast (service warmed up) → success
+  #      but now the action has been done TWICE
+  #
+  # Fix: raise the timeout to 10s so real service calls aren't killed prematurely.
+  # ────────────────────────────────────────────────────────────────────────────
+  timelimiter:
+    instances:
+      identityServiceCB:
+        timeout-duration: 10s
+        cancel-running-future: false
+      citizenServiceCB:
+        timeout-duration: 10s
+        cancel-running-future: false
+      serviceRequestServiceCB:
+        timeout-duration: 10s
+        cancel-running-future: false
+      resolutionServiceCB:
+        timeout-duration: 10s
+        cancel-running-future: false
+      feedbackServiceCB:
+        timeout-duration: 10s
+        cancel-running-future: false
+      complianceServiceCB:
+        timeout-duration: 10s
+        cancel-running-future: false
+      reportingServiceCB:
+        timeout-duration: 10s
+        cancel-running-future: false
+      notificationServiceCB:
+        timeout-duration: 10s
+        cancel-running-future: false
+
+  # ── Rate Limiters ──────────────────────────────────────────────────────────
+  ratelimiter:
+    instances:
+      # Strict limit for login endpoint (prevent brute force)
+      authRateLimiter:
+        limit-for-period: 50          # 50 requests
+        limit-refresh-period: 60s     # per 60 seconds (1 minute)
+        timeout-duration: 0s          # don't wait, reject immediately
+      # Strict limit for registration (prevent spam)
+      registerRateLimiter:
+        limit-for-period: 50          # 50 requests
+        limit-refresh-period: 60s     # per 60 seconds
+        timeout-duration: 0s
+      # Default limit for general API calls
+      defaultRateLimiter:
+        limit-for-period: 50          # 50 requests
+        limit-refresh-period: 60s     # per 60 seconds
+        timeout-duration: 0s
+      # Higher limit for authenticated service endpoints
+      serviceRateLimiter:
+        limit-for-period: 100         # 100 requests
+        limit-refresh-period: 60s     # per 60 seconds
+        timeout-duration: 0s
+  circuitbreaker:
+    instances:
+      identityServiceCB:
+        sliding-window-size: 20
+        minimum-number-of-calls: 5
+        failure-rate-threshold: 50
+        slow-call-duration-threshold: 8s
+        slow-call-rate-threshold: 80
+        wait-duration-in-open-state: 15s
+        permitted-number-of-calls-in-half-open-state: 5
+        automatic-transition-from-open-to-half-open-enabled: true
+      citizenServiceCB:
+        sliding-window-size: 20
+        minimum-number-of-calls: 5
+        failure-rate-threshold: 50
+        slow-call-duration-threshold: 8s
+        slow-call-rate-threshold: 80
+        wait-duration-in-open-state: 15s
+        permitted-number-of-calls-in-half-open-state: 5
+        automatic-transition-from-open-to-half-open-enabled: true
+      serviceRequestServiceCB:
+        sliding-window-size: 20
+        minimum-number-of-calls: 5
+        failure-rate-threshold: 50
+        slow-call-duration-threshold: 8s
+        slow-call-rate-threshold: 80
+        wait-duration-in-open-state: 15s
+        permitted-number-of-calls-in-half-open-state: 5
+        automatic-transition-from-open-to-half-open-enabled: true
+      resolutionServiceCB:
+        sliding-window-size: 20
+        minimum-number-of-calls: 5
+        failure-rate-threshold: 50
+        slow-call-duration-threshold: 8s
+        slow-call-rate-threshold: 80
+        wait-duration-in-open-state: 15s
+        permitted-number-of-calls-in-half-open-state: 5
+        automatic-transition-from-open-to-half-open-enabled: true
+      feedbackServiceCB:
+        sliding-window-size: 20
+        minimum-number-of-calls: 5
+        failure-rate-threshold: 50
+        slow-call-duration-threshold: 8s
+        slow-call-rate-threshold: 80
+        wait-duration-in-open-state: 15s
+        permitted-number-of-calls-in-half-open-state: 5
+        automatic-transition-from-open-to-half-open-enabled: true
+      complianceServiceCB:
+        sliding-window-size: 20
+        minimum-number-of-calls: 5
+        failure-rate-threshold: 50
+        slow-call-duration-threshold: 8s
+        slow-call-rate-threshold: 80
+        wait-duration-in-open-state: 15s
+        permitted-number-of-calls-in-half-open-state: 5
+        automatic-transition-from-open-to-half-open-enabled: true
+      reportingServiceCB:
+        sliding-window-size: 20
+        minimum-number-of-calls: 5
+        failure-rate-threshold: 50
+        slow-call-duration-threshold: 8s
+        slow-call-rate-threshold: 80
+        wait-duration-in-open-state: 15s
+        permitted-number-of-calls-in-half-open-state: 5
+        automatic-transition-from-open-to-half-open-enabled: true
+      notificationServiceCB:
+        sliding-window-size: 20
+        minimum-number-of-calls: 5
+        failure-rate-threshold: 50
+        slow-call-duration-threshold: 8s
+        slow-call-rate-threshold: 80
+        wait-duration-in-open-state: 15s
+        permitted-number-of-calls-in-half-open-state: 5
+        automatic-transition-from-open-to-half-open-enabled: true
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Actuator
+# ──────────────────────────────────────────────────────────────────────────────
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,gateway,circuitbreakers,ratelimiters
+  endpoint:
+    health:
+      show-details: always
+    gateway:
+      enabled: true
+
+logging:
+  level:
+    org.springframework.cloud.gateway: INFO
+    com.civicconnect.gateway: DEBUG
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Springdoc OpenAPI – Aggregated Swagger UI
+# ──────────────────────────────────────────────────────────────────────────────
+springdoc:
+   api-docs:
+     enabled: true
+   swagger-ui:
+     enabled: true
+     path: /swagger-ui.html
+     urls-primary-name: "Select a Service"
+     urls:
+       - name: Identity Service
+         url: /v3/api-docs/identity-service
+       - name: Citizen Service
+         url: /v3/api-docs/citizen-service
+       - name: Service Request Service
+         url: /v3/api-docs/service-request-service
+       - name: Resolution Service
+         url: /v3/api-docs/resolution-service
+       - name: Feedback Service
+         url: /v3/api-docs/feedback-service
+       - name: Compliance Service
+         url: /v3/api-docs/compliance-service
+       - name: Reporting Service
+         url: /v3/api-docs/reporting-service
+       - name: Notification Service
+         url: /v3/api-docs/notification-service
+
