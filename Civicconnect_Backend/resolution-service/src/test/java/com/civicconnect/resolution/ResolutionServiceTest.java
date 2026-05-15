@@ -109,7 +109,6 @@ class ResolutionServiceTest {
         when(resolutionRepository.existsByRequestId(10L)).thenReturn(false);
         when(identityFeignClient.validateUser(200L)).thenReturn(serviceOfficer);
         when(resolutionRepository.save(any())).thenReturn(inProgressResolution);
-        doNothing().when(serviceRequestFeignClient).updateStatus(anyLong(), any());
         doNothing().when(identityFeignClient).writeAuditLog(any());
         doNothing().when(notificationFeignClient).sendNotification(any());
 
@@ -119,7 +118,9 @@ class ResolutionServiceTest {
         assertThat(response.getStatus()).isEqualTo(ResolutionStatus.IN_PROGRESS);
         assertThat(response.getOfficerName()).isEqualTo("Officer Bob");
         verify(resolutionRepository).save(any(Resolution.class));
-        verify(serviceRequestFeignClient).updateStatus(eq(10L), any());
+        // Creating a resolution must NOT push a status update to the service-request service.
+        // The request status is changed only by the officer's explicit "Update" action.
+        verify(serviceRequestFeignClient, never()).updateStatus(anyLong(), any());
         verify(notificationFeignClient, atLeastOnce()).sendNotification(any());
     }
 
@@ -260,7 +261,7 @@ class ResolutionServiceTest {
     }
 
     @Test
-    @DisplayName("Should complete resolution and push RESOLVED when all steps done")
+    @DisplayName("Should complete resolution but NOT push RESOLVED to service-request when all steps done")
     void shouldCompleteResolutionWhenAllStepsDone() {
         UpdateWorkflowStepRequest req = new UpdateWorkflowStepRequest();
         req.setStatus(WorkflowStepStatus.COMPLETED);
@@ -274,15 +275,16 @@ class ResolutionServiceTest {
         when(workflowStepRepository.existsByResolution_ResolutionIdAndStatusNot(
                 1L, WorkflowStepStatus.COMPLETED)).thenReturn(false);
         when(resolutionRepository.save(any())).thenReturn(inProgressResolution);
-        doNothing().when(serviceRequestFeignClient).updateStatus(anyLong(), any());
         doNothing().when(notificationFeignClient).sendNotification(any());
         doNothing().when(identityFeignClient).writeAuditLog(any());
 
         resolutionService.updateWorkflowStepStatus(1L, req, 200L);
 
+        // Resolution itself is marked COMPLETED.
         verify(resolutionRepository).save(any(Resolution.class));
-        verify(serviceRequestFeignClient).updateStatus(eq(10L), argThat(
-                s -> "RESOLVED".equals(s.getStatus())));
+        // But the service-request status is NOT auto-updated to RESOLVED.
+        // The officer must explicitly update the request via the dashboard.
+        verify(serviceRequestFeignClient, never()).updateStatus(anyLong(), any());
         verify(notificationFeignClient, atLeastOnce()).sendNotification(any());
     }
 

@@ -52,6 +52,26 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/api/v1/auth/login").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/v1/auth/reset-password").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/v1/auth/register-staff").permitAll()
+
+                // Password recovery via security questions (public — pre-login flow)
+                .requestMatchers(HttpMethod.GET,  "/api/v1/auth/security/questions").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/v1/auth/security/forgot-password").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/v1/auth/security/verify-answers").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/v1/auth/security/reset").permitAll()
+
+                // Change own password — any signed-in user (staff or citizen)
+                .requestMatchers(HttpMethod.POST, "/api/v1/auth/change-password")
+                    .hasAnyRole(CITIZEN, SERVICE_OFFICER, DEPARTMENT_HEAD,
+                                CITY_ADMINISTRATOR, COMPLIANCE_OFFICER)
+
+                // Setup security questions — citizens only
+                .requestMatchers(HttpMethod.POST, "/api/v1/auth/security/setup")
+                    .hasRole(CITIZEN)
+
+                // Admin-triggered staff password reset — CITY_ADMINISTRATOR only
+                .requestMatchers(HttpMethod.POST, "/api/v1/auth/admin-reset-password")
+                    .hasRole(CITY_ADMINISTRATOR)
+
                 .requestMatchers(
                         "/swagger-ui/**", "/swagger-ui.html",
                         "/api-docs/**",   "/v3/api-docs/**",

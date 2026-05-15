@@ -49,6 +49,9 @@ public class ComplianceServiceImpl implements ComplianceService {
                 && !"CITY_ADMINISTRATOR".equals(officer.getRole()))
             throw new InvalidOperationException("Only COMPLIANCE_OFFICER or CITY_ADMINISTRATOR can create compliance records.");
 
+        // Track the operational officer for FAIL notifications below.
+        Long assignedOfficerUserId = null;
+
         if (request.getType() == ComplianceType.REQUEST) {
             ServiceRequestValidationResponse sr = serviceRequestFeignClient.getRequest(request.getEntityId());
             if (!sr.isExists()) throw new ResourceNotFoundException("ServiceRequest not found with id: " + request.getEntityId());
@@ -60,6 +63,7 @@ public class ComplianceServiceImpl implements ComplianceService {
                         + "Request #" + request.getEntityId() + " is currently in '" + sr.getStatus() + "' state."
                 );
             }
+            assignedOfficerUserId = sr.getAssignedOfficerUserId();
         } else if (request.getType() == ComplianceType.RESOLUTION) {
             ResolutionValidationResponse res = resolutionFeignClient.getResolution(request.getEntityId());
             if (!res.isExists()) throw new ResourceNotFoundException("Resolution not found with id: " + request.getEntityId());
@@ -71,6 +75,7 @@ public class ComplianceServiceImpl implements ComplianceService {
                         + "Resolution #" + request.getEntityId() + " is currently in '" + res.getStatus() + "' state."
                 );
             }
+            assignedOfficerUserId = res.getOfficerUserId();
         }
 
         ComplianceRecord record = ComplianceRecord.builder()
@@ -85,9 +90,23 @@ public class ComplianceServiceImpl implements ComplianceService {
                 "Type: " + request.getType() + " | EntityId: " + request.getEntityId() + " | Result: " + request.getResult());
 
         if (request.getResult() == ComplianceResult.FAIL) {
-            sendNotification(officerUserId, null,
-                    "Compliance FAIL recorded for " + request.getType() + " ID: " + request.getEntityId(),
-                    NotificationCategory.COMPLIANCE);
+            String message = "Compliance FAIL recorded for " + request.getType() + " ID: " + request.getEntityId();
+            // Attach requestId or resolutionId based on entity type — never both — so the bell links correctly.
+            Long requestIdAttach    = request.getType() == ComplianceType.REQUEST    ? request.getEntityId() : null;
+            Long resolutionIdAttach = request.getType() == ComplianceType.RESOLUTION ? request.getEntityId() : null;
+
+            // 1. Notify the operational officer assigned to the underlying request/resolution.
+            //    Skip if they happen to be the filer (e.g. compliance officer wearing two hats) — they already know.
+            if (assignedOfficerUserId != null && !assignedOfficerUserId.equals(officerUserId)) {
+                sendNotification(assignedOfficerUserId, requestIdAttach, resolutionIdAttach,
+                        message, NotificationCategory.COMPLIANCE);
+            }
+            // 2. Broadcast to all city administrators (excluding the filer).
+            broadcastToRole("CITY_ADMINISTRATOR", requestIdAttach, resolutionIdAttach,
+                    message, NotificationCategory.COMPLIANCE, officerUserId);
+            // 3. Broadcast to all department heads (excluding the filer).
+            broadcastToRole("DEPARTMENT_HEAD", requestIdAttach, resolutionIdAttach,
+                    message, NotificationCategory.COMPLIANCE, officerUserId);
         }
         return mapToComplianceResponse(record);
     }
@@ -201,11 +220,26 @@ public class ComplianceServiceImpl implements ComplianceService {
         } catch (Exception e) { log.warn("Failed to write audit log: action={}: {}", action, e.getMessage()); }
     }
 
-    private void sendNotification(Long userId, Long requestId, String message, NotificationCategory category) {
+    private void sendNotification(Long userId, Long requestId, Long resolutionId, String message, NotificationCategory category) {
         try {
             notificationFeignClient.sendNotification(SendNotificationRequest.builder()
-                    .userId(userId).requestId(requestId).message(message).category(category.name()).build());
+                    .userId(userId).requestId(requestId).resolutionId(resolutionId)
+                    .message(message).category(category.name()).build());
         } catch (Exception e) { log.warn("Failed to send notification to userId={}: {}", userId, e.getMessage()); }
+    }
+
+    /** Fan-out: notifies every user in a role. Filers/excluded recipients are skipped. */
+    private void broadcastToRole(String role, Long requestId, Long resolutionId, String message,
+                                 NotificationCategory category, Long excludeUserId) {
+        try {
+            List<Long> userIds = identityFeignClient.findUserIdsByRole(role);
+            for (Long uid : userIds) {
+                if (uid == null || uid.equals(excludeUserId)) continue;
+                sendNotification(uid, requestId, resolutionId, message, category);
+            }
+        } catch (Exception e) {
+            log.warn("Failed to broadcast notification to role {}: {}", role, e.getMessage());
+        }
     }
 
     private ComplianceRecordResponse mapToComplianceResponse(ComplianceRecord r) {

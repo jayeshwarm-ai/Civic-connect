@@ -8,7 +8,7 @@ import { toast } from 'react-toastify';
 const statusBadge = (s) => <span className={`badge badge-${s.toLowerCase()}`}>{s.replace('_', ' ')}</span>;
 const resultBadge = (r) => (
   <span className={`badge ${r === 'PASS' ? 'badge-verified' : 'badge-rejected'}`}>
-    {r === 'PASS' ? '✅ PASS' : '❌ FAIL'}
+    {r === 'PASS' ? 'PASS' : 'FAIL'}
   </span>
 );
 
@@ -67,45 +67,42 @@ export default function ComplianceDashboardPage() {
   return (
     <>
       <PageHeader
-        icon="🛡️"
+        icon=""
         title="Compliance Dashboard"
         subtitle="Review compliance records, manage audits, and ensure regulatory standards are met."
       />
 
       <div className="stats-row">
-        <StatCard icon="⏳" label="Pending Review" value={pendingRequests.length} variant="warning" />
-        <StatCard icon="📋" label="Total Records"  value={allRecords.length}     variant="primary" />
-        <StatCard icon="✅" label="Passed"         value={passRecords.length}    variant="success" />
-        <StatCard icon="❌" label="Failed"         value={failRecords.length}    variant="danger"  />
+        <StatCard icon="" label="Pending Review" value={pendingRequests.length} variant="warning" />
+        <StatCard icon="" label="Total Records" value={allRecords.length} variant="primary" />
+        <StatCard icon="" label="Passed" value={passRecords.length} variant="success" />
+        <StatCard icon="" label="Failed" value={failRecords.length} variant="danger" />
       </div>
 
       {/* Tab buttons */}
       <div className="actions-row" style={{ marginTop: 0, marginBottom: 24 }}>
-        <button className={`btn ${tab === 'pending' ? 'btn-primary' : 'btn-outline'}`} onClick={() => setTab('pending')}>
-          ⏳ Pending Review ({pendingRequests.length})
+        <button className={`btn ${tab === 'pending' ? 'btn-primary' : 'btn-outline'}`} onClick={() => setTab('pending')}>Pending Review ({pendingRequests.length})
         </button>
-        <button className={`btn ${tab === 'records' ? 'btn-primary' : 'btn-outline'}`} onClick={() => setTab('records')}>
-          📋 Compliance Records
+        <button className={`btn ${tab === 'records' ? 'btn-primary' : 'btn-outline'}`} onClick={() => setTab('records')}>Compliance Records
         </button>
         <button className={`btn ${tab === 'audits' ? 'btn-primary' : 'btn-outline'}`} onClick={() => setTab('audits')}>
-          🔍 {isAdmin ? 'All Audits' : 'My Audits'}
+          {isAdmin ? 'All Audits' : 'My Audits'}
         </button>
-        <Link to="/compliance/audits/new" className="btn btn-secondary">➕ New Audit</Link>
+        <Link to="/compliance/audits/new" className="btn btn-secondary">New Audit</Link>
       </div>
 
       {/* Pending compliance review - closed requests without compliance records */}
       {tab === 'pending' && (
         <div className="card">
-          <div className="card-title"><span className="icon icon-orange">⏳</span> Closed Requests — Pending Compliance Review ({pendingRequests.length})</div>
+          <div className="card-title"><span className="icon icon-orange"></span>Closed Requests — Pending Compliance Review ({pendingRequests.length})</div>
           {pendingRequests.length > 0 && (
             <div className="info-tip" style={{ width: '100%', marginBottom: 16 }}>
-              <span className="tip-icon">💡</span>
-              These service requests have been <strong>CLOSED</strong> by citizens but have no compliance record yet. Review and create a PASS/FAIL record for each.
+              <span className="tip-icon"></span>These service requests have been <strong>CLOSED</strong> by citizens but have no compliance record yet. Review and create a PASS/FAIL record for each.
             </div>
           )}
           {pendingRequests.length === 0 ? (
             <div className="empty-state">
-              <div className="empty-icon">✅</div>
+              <div className="empty-icon"></div>
               <h3>All caught up!</h3>
               <p>No closed service requests pending compliance review.</p>
             </div>
@@ -132,8 +129,7 @@ export default function ComplianceDashboardPage() {
                       <td>{r.assignedOfficerName || '—'}</td>
                       <td>{new Date(r.updatedAt).toLocaleDateString()}</td>
                       <td>
-                        <Link to={`/compliance/records/new?type=REQUEST&entityId=${r.requestId}`} className="btn btn-small btn-primary">
-                          🛡️ Create Record
+                        <Link to={`/compliance/records/new?type=REQUEST&entityId=${r.requestId}`} className="btn btn-small btn-primary">Create Record
                         </Link>
                       </td>
                     </tr>
@@ -147,10 +143,10 @@ export default function ComplianceDashboardPage() {
 
       {tab === 'records' && (
         <div className="card">
-          <div className="card-title"><span className="icon icon-blue">📋</span> Compliance Records ({allRecords.length})</div>
+          <div className="card-title"><span className="icon icon-blue"></span>Compliance Records ({allRecords.length})</div>
           {allRecords.length === 0 ? (
             <div className="empty-state">
-              <div className="empty-icon">📋</div>
+              <div className="empty-icon"></div>
               <h3>No compliance records yet</h3>
               <p>Create a compliance check for a completed/closed service request or resolution.</p>
             </div>
@@ -172,7 +168,7 @@ export default function ComplianceDashboardPage() {
                       <td>{r.createdByName}</td>
                       <td>{new Date(r.createdAt).toLocaleDateString()}</td>
                       <td>
-                        <Link to={`/compliance/records/${r.complianceId}`} className="btn btn-small btn-secondary">👁️ View</Link>
+                        <Link to={`/compliance/records/${r.complianceId}`} className="btn btn-small btn-secondary">View</Link>
                       </td>
                     </tr>
                   ))}
@@ -185,10 +181,10 @@ export default function ComplianceDashboardPage() {
 
       {tab === 'audits' && (
         <div className="card">
-          <div className="card-title"><span className="icon icon-green">🔍</span> {isAdmin ? 'All Audits' : 'My Audits'} ({audits.length})</div>
+          <div className="card-title"><span className="icon icon-green"></span> {isAdmin ? 'All Audits' : 'My Audits'} ({audits.length})</div>
           {audits.length === 0 ? (
             <div className="empty-state">
-              <div className="empty-icon">🔍</div>
+              <div className="empty-icon"></div>
               <h3>No audits yet</h3>
               <p>{isAdmin ? 'No audit records have been created yet.' : 'Create an audit to review compliance for a scope of requests or resolutions.'}</p>
             </div>
@@ -206,7 +202,7 @@ export default function ComplianceDashboardPage() {
                   {audits.map(a => (
                     <tr key={a.auditId}>
                       <td style={{ fontWeight: 700 }}>#{a.auditId}</td>
-                      {isAdmin && <td>{a.officerName || `#${a.officerUserId}`}</td>}
+                      {isAdmin && <td>{a.officerName || `#${a.officerId}`}</td>}
                       <td style={{ maxWidth: 250, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.scope}</td>
                       <td>{statusBadge(a.status)}</td>
                       <td style={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -214,7 +210,7 @@ export default function ComplianceDashboardPage() {
                       </td>
                       <td>{new Date(a.createdAt).toLocaleDateString()}</td>
                       <td>
-                        <Link to={`/compliance/audits/${a.auditId}`} className="btn btn-small btn-secondary">👁️ Manage</Link>
+                        <Link to={`/compliance/audits/${a.auditId}`} className="btn btn-small btn-secondary">Manage</Link>
                       </td>
                     </tr>
                   ))}
@@ -227,4 +223,3 @@ export default function ComplianceDashboardPage() {
     </>
   );
 }
-

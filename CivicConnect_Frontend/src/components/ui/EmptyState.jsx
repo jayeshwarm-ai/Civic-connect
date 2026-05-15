@@ -4,16 +4,16 @@ import React from 'react';
  * EmptyState — shown when a list, table or section has no data.
  *
  * Usage:
- *   <EmptyState icon="📋" title="No requests yet" description="You have not raised any complaints." />
- *   <EmptyState icon="🔔" title="All caught up" description="No new notifications." action={<button>Refresh</button>} />
+ * <EmptyState icon="" title="No requests yet" description="You have not raised any complaints." />
+ * <EmptyState icon="" title="All caught up" description="No new notifications." action={<button>Refresh</button>} />
  *
  * Props:
- *   icon        — emoji or character (default '📭').
+ * icon — emoji or character (default '').
  *   title       — short headline (required).
  *   description — optional supporting text.
  *   action      — optional ReactNode (usually a button or link).
  */
-function EmptyState({ icon = '📭', title, description, action }) {
+function EmptyState({ icon = '', title, description, action }) {
   return (
     <div className="gv-empty">
       <div className="gv-empty__icon" aria-hidden="true">{icon}</div>

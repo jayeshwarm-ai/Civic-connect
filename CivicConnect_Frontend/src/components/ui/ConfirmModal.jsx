@@ -16,7 +16,7 @@ import React from 'react';
  *   variant      — 'danger' | 'primary' | 'success'. Default: 'primary'.
  *                  Controls the colour of the confirm button. Use 'danger'
  *                  for destructive/irreversible actions (deactivate, withdraw).
- *   icon         — single emoji shown above the title. Default: '⚠️'.
+ * icon — single emoji shown above the title. Default: ''.
  *   loading      — when true, disables both buttons and shows a spinner state
  *                  on the confirm button. Useful while the async action runs.
  *   onConfirm    — called when the user clicks the confirm button.
@@ -39,7 +39,7 @@ export default function ConfirmModal({
   confirmLabel = 'Confirm',
   cancelLabel = 'Cancel',
   variant = 'primary',
-  icon = '⚠️',
+  icon = '',
   loading = false,
   onConfirm,
   onClose,
@@ -118,7 +118,7 @@ export default function ConfirmModal({
               className={confirmBtnClass}
               style={{ minWidth: 140 }}
             >
-              {loading ? '⏳ Working…' : confirmLabel}
+              {loading ? 'Working…' : confirmLabel}
             </button>
             <button
               onClick={onClose}

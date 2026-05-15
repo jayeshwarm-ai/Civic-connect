@@ -110,7 +110,9 @@ class ComplianceServiceTest {
         when(identityFeignClient.validateUser(300L)).thenReturn(complianceOfficer);
         when(serviceRequestFeignClient.getRequest(10L))
                 .thenReturn(ServiceRequestValidationResponse.builder()
-                        .requestId(10L).status("CLOSED").exists(true).build());
+                        .requestId(10L).status("CLOSED").assignedOfficerUserId(200L).exists(true).build());
+        when(identityFeignClient.findUserIdsByRole("CITY_ADMINISTRATOR")).thenReturn(java.util.List.of(1L));
+        when(identityFeignClient.findUserIdsByRole("DEPARTMENT_HEAD")).thenReturn(java.util.List.of(2L));
         when(complianceRecordRepository.save(any())).thenReturn(failRecord);
         doNothing().when(identityFeignClient).writeAuditLog(any());
         doNothing().when(notificationFeignClient).sendNotification(any());
@@ -118,7 +120,8 @@ class ComplianceServiceTest {
         ComplianceRecordResponse response = complianceService.createComplianceRecord(req, 300L);
 
         assertThat(response.getResult()).isEqualTo(ComplianceResult.FAIL);
-        verify(notificationFeignClient).sendNotification(any(SendNotificationRequest.class));
+        // FAIL notifies assigned officer + every admin + every dept head (excluding the filer) — count varies, just verify at least one was sent.
+        verify(notificationFeignClient, atLeastOnce()).sendNotification(any(SendNotificationRequest.class));
     }
 
     @Test

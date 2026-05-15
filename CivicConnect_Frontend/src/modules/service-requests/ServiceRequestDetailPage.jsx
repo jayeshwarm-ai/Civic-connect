@@ -4,7 +4,6 @@ import { getServiceRequestById, getServiceRequestUpdates } from '../../services/
 import { toast } from 'react-toastify';
 
 const badge = (s) => <span className={`badge badge-${s.toLowerCase()}`}>{s.replace('_',' ')}</span>;
-const typeIcon = (t) => t==='ROAD'?'🛣️':t==='WATER'?'💧':'⚡';
 
 export default function ServiceRequestDetailPage() {
   const { requestId } = useParams();
@@ -29,22 +28,20 @@ export default function ServiceRequestDetailPage() {
   return (
     <>
       <div className="card">
-        <div className="card-title">
-          <span className="icon icon-blue">{typeIcon(req.type)}</span>
-          Request #{req.requestId}
+        <div className="card-title">Request #{req.requestId}
           <span style={{marginLeft:'auto'}}>{badge(req.status)}</span>
         </div>
         <div className="profile-grid">
-          <div className="profile-item"><label>📋 Type</label><div className="value">{req.type}</div></div>
-          <div className="profile-item"><label>👤 Citizen</label><div className="value">{req.citizenName} (#{req.citizenId})</div></div>
-          <div className="profile-item"><label>📍 City / State</label><div className="value">{req.city || '—'}{req.state ? `, ${req.state}` : ''}</div></div>
-          <div className="profile-item" style={{gridColumn:'1 / -1'}}><label>🏠 Address</label><div className="value">{req.address || '—'}</div></div>
-          <div className="profile-item"><label>👮 Officer</label><div className="value">{req.assignedOfficerName || <span style={{color:'var(--gray-400)'}}>Not assigned</span>}</div></div>
-          <div className="profile-item"><label>📅 Created</label><div className="value">{new Date(req.createdAt).toLocaleString()}</div></div>
-          <div className="profile-item"><label>🔄 Updated</label><div className="value">{new Date(req.updatedAt).toLocaleString()}</div></div>
+          <div className="profile-item"><label>Type</label><div className="value">{req.type}</div></div>
+          <div className="profile-item"><label>Citizen</label><div className="value">{req.citizenName} (#{req.citizenId})</div></div>
+          <div className="profile-item"><label>City / State</label><div className="value">{req.city || '—'}{req.state ? `, ${req.state}` : ''}</div></div>
+          <div className="profile-item" style={{gridColumn:'1 / -1'}}><label>Address</label><div className="value">{req.address || '—'}</div></div>
+          <div className="profile-item"><label>Officer</label><div className="value">{req.assignedOfficerName || <span style={{color:'var(--gray-400)'}}>Not assigned</span>}</div></div>
+          <div className="profile-item"><label>Created</label><div className="value">{new Date(req.createdAt).toLocaleString()}</div></div>
+          <div className="profile-item"><label>Updated</label><div className="value">{new Date(req.updatedAt).toLocaleString()}</div></div>
         </div>
         <div style={{marginTop:24,padding:20,background:'var(--gray-50)',borderRadius:14,border:'1px solid var(--gray-100)'}}>
-          <label style={{fontSize:'.75rem',fontWeight:800,color:'var(--gray-400)',textTransform:'uppercase',letterSpacing:1,marginBottom:8,display:'block'}}>📝 Description</label>
+          <label style={{fontSize:'.75rem',fontWeight:800,color:'var(--gray-400)',textTransform:'uppercase',letterSpacing:1,marginBottom:8,display:'block'}}>Description</label>
           <p style={{fontSize:'.95rem',lineHeight:1.7,color:'var(--gray-700)'}}>{req.description}</p>
         </div>
         <div className="actions-row">
@@ -53,9 +50,9 @@ export default function ServiceRequestDetailPage() {
       </div>
 
       <div className="card">
-        <div className="card-title"><span className="icon icon-green">📜</span> Update History ({updates.length})</div>
+        <div className="card-title"><span className="icon icon-green"></span>Update History ({updates.length})</div>
         {updates.length === 0 ? (
-          <div className="empty-state"><div className="empty-icon">📭</div><h3>No updates yet</h3><p>Updates will appear here as the request progresses.</p></div>
+          <div className="empty-state"><div className="empty-icon"></div><h3>No updates yet</h3><p>Updates will appear here as the request progresses.</p></div>
         ) : (
           <div className="timeline">
             {updates.map((u, i) => (

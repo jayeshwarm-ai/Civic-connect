@@ -143,14 +143,22 @@ public class CitizenServiceImpl implements CitizenService {
                     "You are not authorized to update this profile.");
         }
 
+        boolean addressChanged = !citizen.getAddress().equals(request.getAddress());
+
         citizen.setAddress(request.getAddress());
         citizen.setContactInfo(request.getContactInfo());
         citizen.setPhone(request.getPhone());
         citizenRepository.save(citizen);
 
+        if (addressChanged) {
+            handleAddressChange(citizen, requestingUserId);
+        }
+
         writeAuditLog(requestingUserId, "CITIZEN_PROFILE_UPDATED",
                 "CITIZEN", String.valueOf(citizenId),
-                "Profile updated: address and contact info changed");
+                addressChanged
+                        ? "Profile updated: address changed — residence proof cleared for re-upload"
+                        : "Profile updated: contact info changed");
 
         return mapToResponse(citizen);
     }
@@ -164,14 +172,26 @@ public class CitizenServiceImpl implements CitizenService {
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Citizen profile not found for userId: " + userId));
 
+        boolean addressChanged = !citizen.getAddress().equals(request.getAddress());
+
         citizen.setAddress(request.getAddress());
         citizen.setContactInfo(request.getContactInfo());
         citizen.setPhone(request.getPhone());
         citizenRepository.save(citizen);
 
+        // If the citizen changed their address, the previously verified residence
+        // proof no longer matches their actual residence and must be re-uploaded.
+        // We delete any existing PENDING / VERIFIED RESIDENCE_PROOF documents and
+        // move the account back to INACTIVE so the citizen is prompted to re-upload.
+        if (addressChanged) {
+            handleAddressChange(citizen, userId);
+        }
+
         writeAuditLog(userId, "CITIZEN_PROFILE_UPDATED",
                 "CITIZEN", String.valueOf(citizen.getCitizenId()),
-                "Profile updated: address and contact info changed");
+                addressChanged
+                        ? "Profile updated: address changed — residence proof cleared for re-upload"
+                        : "Profile updated: contact info changed");
 
         return mapToResponse(citizen);
     }
@@ -190,14 +210,25 @@ public class CitizenServiceImpl implements CitizenService {
             throw new InvalidOperationException(
                     "You are not authorized to upload documents for this citizen.");
         }
-        
-        // Guard: only INACTIVE citizens can upload documents
-        if (citizen.getAccountStatus() != UserStatus.INACTIVE) {
+
+        // Enforce: at most ONE non-rejected document per docType.
+        // REJECTED documents don't block re-upload (otherwise citizen would
+        // be stuck after a rejection). VERIFIED RESIDENCE_PROOF is cleared
+        // by updateMyProfile when address changes.
+        boolean blockingDocExists = documentRepository
+                .findByCitizen_CitizenId(citizenId)
+                .stream()
+                .anyMatch(d -> d.getDocType() == docType
+                        && d.getVerificationStatus() != VerificationStatus.REJECTED);
+        if (blockingDocExists) {
             throw new InvalidOperationException(
-                    "Documents can only be uploaded while account status is INACTIVE. "
-                    + "Current status: " + citizen.getAccountStatus());
+                    docType.name().replace('_', ' ')
+                    + " has already been uploaded and cannot be re-uploaded."
+                    + (docType == DocType.RESIDENCE_PROOF
+                            ? " To upload a new residence proof, update your address from your profile first."
+                            : ""));
         }
-        
+
         if (file.isEmpty()) {
             throw new InvalidOperationException("Uploaded file is empty.");
         }
@@ -228,11 +259,25 @@ public class CitizenServiceImpl implements CitizenService {
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Citizen profile not found for userId: " + userId));
 
-        // Guard: only INACTIVE citizens can upload documents
-        if (citizen.getAccountStatus() != UserStatus.INACTIVE) {
+        // Enforce: a citizen can have at most ONE non-rejected document of each
+        // type (ID_PROOF, RESIDENCE_PROOF). REJECTED documents do not block a
+        // re-upload — otherwise a citizen whose first attempt is rejected would
+        // be stuck. If the existing document is PENDING or VERIFIED, the upload
+        // is refused. To replace a VERIFIED RESIDENCE_PROOF the citizen must
+        // first change their address, which clears the old RESIDENCE_PROOF
+        // automatically (see updateMyProfile).
+        boolean blockingDocExists = documentRepository
+                .findByCitizen_CitizenId(citizen.getCitizenId())
+                .stream()
+                .anyMatch(d -> d.getDocType() == docType
+                        && d.getVerificationStatus() != VerificationStatus.REJECTED);
+        if (blockingDocExists) {
             throw new InvalidOperationException(
-                    "Documents can only be uploaded while account status is INACTIVE. "
-                    + "Current status: " + citizen.getAccountStatus());
+                    docType.name().replace('_', ' ')
+                    + " has already been uploaded and cannot be re-uploaded."
+                    + (docType == DocType.RESIDENCE_PROOF
+                            ? " To upload a new residence proof, update your address from your profile first."
+                            : ""));
         }
 
         if (file.isEmpty()) {
@@ -404,6 +449,57 @@ public class CitizenServiceImpl implements CitizenService {
         } catch (Exception e) {
             log.warn("Failed to notify admins on citizen registration: {}", e.getMessage());
         }
+    }
+
+    /**
+     * Called when a citizen's address has actually changed. Any existing
+     * non-rejected RESIDENCE_PROOF is deleted (the citizen will need to upload
+     * a fresh proof matching the new address) and the account is moved back to
+     * INACTIVE so the verification flow restarts. ID_PROOF is unaffected — it
+     * doesn't depend on address. If the citizen was previously ACTIVE we also
+     * notify them about the re-verification requirement.
+     */
+    private void handleAddressChange(Citizen citizen, Long actingUserId) {
+        List<CitizenDocument> existingResidence = documentRepository
+                .findByCitizen_CitizenId(citizen.getCitizenId())
+                .stream()
+                .filter(d -> d.getDocType() == DocType.RESIDENCE_PROOF
+                        && d.getVerificationStatus() != VerificationStatus.REJECTED)
+                .collect(Collectors.toList());
+
+        if (existingResidence.isEmpty()) {
+            // No residence proof yet (or only rejected ones). Nothing to clear.
+            return;
+        }
+
+        documentRepository.deleteAll(existingResidence);
+
+        boolean wasActive = citizen.getAccountStatus() == UserStatus.ACTIVE;
+        if (wasActive) {
+            // Move local + identity-service status back to INACTIVE
+            citizen.setAccountStatus(UserStatus.INACTIVE);
+            citizenRepository.save(citizen);
+            try {
+                identityFeignClient.deactivateUser(citizen.getUserId());
+            } catch (Exception e) {
+                log.warn("Failed to deactivate user in identity-service after address change: {}", e.getMessage());
+            }
+            try {
+                notificationFeignClient.sendNotification(
+                        SendNotificationRequest.builder()
+                                .userId(citizen.getUserId())
+                                .message("Your address has been updated. Please upload a new Residence Proof to re-verify your account.")
+                                .category("REQUEST")
+                                .build());
+            } catch (Exception e) {
+                log.warn("Failed to notify citizen about residence re-upload: {}", e.getMessage());
+            }
+        }
+
+        writeAuditLog(actingUserId, "RESIDENCE_PROOF_CLEARED",
+                "CITIZEN", String.valueOf(citizen.getCitizenId()),
+                "Address changed — " + existingResidence.size()
+                        + " residence proof document(s) cleared for re-upload");
     }
 
     private void notifyAdminsOnDocumentUpload(Citizen citizen, DocType docType) {

@@ -5,7 +5,7 @@ import { PageHeader, FieldError, ConfirmModal } from '../../components/ui';
 import { validate, required, email as emailRule, minLen, exactDigits, passwordStrength } from '../../utils/validators';
 
 const ROLES = ['SERVICE_OFFICER', 'DEPARTMENT_HEAD', 'CITY_ADMINISTRATOR', 'COMPLIANCE_OFFICER'];
-const roleIcon = (r) => r === 'SERVICE_OFFICER' ? '👮' : r === 'DEPARTMENT_HEAD' ? '🏢' : r === 'CITY_ADMINISTRATOR' ? '🏛️' : '📋';
+const roleIcon = (r) => r === 'SERVICE_OFFICER' ? '' : r === 'DEPARTMENT_HEAD' ? '' : r === 'CITY_ADMINISTRATOR' ? '' : '';
 
 const STAFF_RULES = {
   name:     [required('Name'), minLen(2, 'Name')],
@@ -51,7 +51,7 @@ export default function StaffManagementPage() {
     setError(''); setCreating(true);
     try {
       await registerStaff(form);
-      toast.success(`✅ ${form.role.replace('_', ' ')} created!`);
+      toast.success(` ${form.role.replace('_', ' ')} created!`);
       setForm({ name: '', email: '', password: '', phone: '', role: 'SERVICE_OFFICER' });
       setErrors({});
     } catch (err) {
@@ -70,9 +70,9 @@ export default function StaffManagementPage() {
         (newStatus === 'SUSPENDED'
           ? 'They will lose access immediately.'
           : 'They will regain access to the system.'),
-      confirmLabel: newStatus === 'SUSPENDED' ? '🚫 Yes, suspend' : '✓ Yes, activate',
+      confirmLabel: newStatus === 'SUSPENDED' ? 'Yes, suspend' : 'Yes, activate',
       variant: newStatus === 'SUSPENDED' ? 'danger' : 'success',
-      icon: newStatus === 'SUSPENDED' ? '⚠️' : '✅',
+      icon: newStatus === 'SUSPENDED' ? '' : '',
       run: async () => {
         await updateStaffStatus(userId, newStatus);
         toast.success(`${name} has been ${newStatus === 'SUSPENDED' ? 'suspended' : 'activated'}.`);
@@ -96,31 +96,29 @@ export default function StaffManagementPage() {
 
   return (
     <>
-      <PageHeader icon="👥" title="Staff Management" subtitle="Register new staff members and manage their account status." />
+      <PageHeader icon="" title="Staff Management" subtitle="Register new staff members and manage their account status." />
 
       {/* Tab Switcher */}
       <div style={{ display: 'flex', gap: 8, marginBottom: 24 }}>
-        <button className={`btn ${tab === 'register' ? 'btn-primary' : 'btn-outline'}`} onClick={() => setTab('register')}>
-          ➕ Register Staff
+        <button className={`btn ${tab === 'register' ? 'btn-primary' : 'btn-outline'}`} onClick={() => setTab('register')}>Register Staff
         </button>
-        <button className={`btn ${tab === 'manage' ? 'btn-primary' : 'btn-outline'}`} onClick={() => setTab('manage')}>
-          👥 View & Manage Staff
+        <button className={`btn ${tab === 'manage' ? 'btn-primary' : 'btn-outline'}`} onClick={() => setTab('manage')}>View & Manage Staff
         </button>
       </div>
 
       {/* ══ REGISTER TAB ══ */}
       {tab === 'register' && (
         <div className="card">
-          <div className="card-title"><span className="icon icon-blue">➕</span> Register New Staff</div>
-          {error && <div className="error-msg">⚠️ {error}</div>}
+          <div className="card-title"><span className="icon icon-blue"></span>Register New Staff</div>
+          {error && <div className="error-msg"> {error}</div>}
           <form onSubmit={handleCreate} noValidate>
             <div className="form-group">
               <label>Role</label>
               <select value={form.role} onChange={e => setForm({ ...form, role: e.target.value })}>
-                <option value="SERVICE_OFFICER">👮 Service Officer</option>
-                <option value="DEPARTMENT_HEAD">🏢 Department Head</option>
-                <option value="CITY_ADMINISTRATOR">🏛️ City Administrator</option>
-                <option value="COMPLIANCE_OFFICER">📋 Compliance Officer</option>
+                <option value="SERVICE_OFFICER">Service Officer</option>
+                <option value="DEPARTMENT_HEAD">Department Head</option>
+                <option value="CITY_ADMINISTRATOR">City Administrator</option>
+                <option value="COMPLIANCE_OFFICER">Compliance Officer</option>
               </select>
             </div>
             <div className="form-row">
@@ -154,10 +152,10 @@ export default function StaffManagementPage() {
               </div>
             </div>
             <div className="info-tip" style={{ width: '100%', marginBottom: 20 }}>
-              <span className="tip-icon">💡</span> Staff accounts are created with <strong>ACTIVE</strong> status immediately. They can login right away.
+              <span className="tip-icon"></span>Staff accounts are created with <strong>ACTIVE</strong> status immediately. They can login right away.
             </div>
             <button className="btn btn-primary" disabled={creating}>
-              {creating ? '⏳ Creating...' : '➕ Create Staff Account'}
+              {creating ? 'Creating...' : 'Create Staff Account'}
             </button>
           </form>
         </div>
@@ -166,7 +164,7 @@ export default function StaffManagementPage() {
       {/* ══ MANAGE TAB ══ */}
       {tab === 'manage' && (
         <div className="card">
-          <div className="card-title"><span className="icon icon-green">👥</span> Staff List</div>
+          <div className="card-title"><span className="icon icon-green"></span>Staff List</div>
 
           <div style={{ display: 'flex', gap: 8, marginBottom: 20, flexWrap: 'wrap' }}>
             {ROLES.map(r => (
@@ -180,7 +178,7 @@ export default function StaffManagementPage() {
             <div className="loading"><div className="spinner"></div></div>
           ) : staffList.length === 0 ? (
             <div className="empty-state">
-              <div className="empty-icon">👤</div>
+              <div className="empty-icon"></div>
               <h3>No {viewRole.replace(/_/g, ' ').toLowerCase()}s found</h3>
               <p>Register one using the "Register Staff" tab.</p>
             </div>
@@ -224,12 +222,10 @@ export default function StaffManagementPage() {
                       <td>{new Date(s.createdAt).toLocaleDateString()}</td>
                       <td>
                         {s.status === 'ACTIVE' ? (
-                          <button className="btn btn-small btn-danger" onClick={() => handleStatusChange(s.userId, s.name, 'SUSPENDED')}>
-                            🚫 Suspend
+                          <button className="btn btn-small btn-danger" onClick={() => handleStatusChange(s.userId, s.name, 'SUSPENDED')}>Suspend
                           </button>
                         ) : (
-                          <button className="btn btn-small btn-success" onClick={() => handleStatusChange(s.userId, s.name, 'ACTIVE')}>
-                            ✅ Activate
+                          <button className="btn btn-small btn-success" onClick={() => handleStatusChange(s.userId, s.name, 'ACTIVE')}>Activate
                           </button>
                         )}
                       </td>

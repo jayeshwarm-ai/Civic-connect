@@ -68,11 +68,16 @@ function ProfileEditPage() {
 
   return (
     <>
-      <PageHeader icon="✏️" title="Edit Profile" subtitle="Update your contact and address details." />
+      <PageHeader icon="" title="Edit Profile" subtitle="Update your contact and address details." />
       <div className="card">
-        <div className="card-title"><span className="icon">✏️</span> Edit Profile</div>
+        <div className="card-title"><span className="icon"></span>Edit Profile</div>
 
         {serverError && <div className="error-msg">{serverError}</div>}
+
+        <div className="info-tip" style={{ width: '100%', marginBottom: 20, background: '#fef3c7', borderColor: '#fbbf24' }}>
+          <span className="tip-icon"></span>
+          Changing your <strong>address</strong> will clear your existing Residence Proof and move your account back to <strong>INACTIVE</strong>. You will need to upload a new Residence Proof for re-verification.
+        </div>
 
         <form onSubmit={handleSubmit} noValidate>
           <div className="form-group">
@@ -111,10 +116,9 @@ function ProfileEditPage() {
 
           <div className="actions-row">
             <button className="btn btn-primary" type="submit" disabled={saving}>
-              {saving ? 'Saving...' : '💾 Save Changes'}
+              {saving ? 'Saving...' : 'Save Changes'}
             </button>
-            <button className="btn btn-secondary" type="button" onClick={() => navigate('/profile')}>
-              Cancel
+            <button className="btn btn-secondary" type="button" onClick={() => navigate('/profile')}>Cancel
             </button>
           </div>
         </form>

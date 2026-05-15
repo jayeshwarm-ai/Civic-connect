@@ -13,8 +13,7 @@ function Footer() {
         <div className="gov-footer__cols">
           <div>
             <h4>About CivicConnect</h4>
-            <p>
-              CivicConnect is a digital citizen-services platform for raising and tracking
+            <p>CivicConnect is a digital citizen-services platform for raising and tracking
               everyday civic issues. Built for transparency, accountability, and speed.
             </p>
           </div>

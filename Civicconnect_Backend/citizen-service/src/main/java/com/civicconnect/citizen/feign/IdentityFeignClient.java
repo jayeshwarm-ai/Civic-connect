@@ -41,6 +41,9 @@ public interface IdentityFeignClient {
     @PostMapping("/internal/users/{userId}/suspend")
     void suspendUser(@PathVariable("userId") Long userId);
 
+    @PostMapping("/internal/users/{userId}/deactivate")
+    void deactivateUser(@PathVariable("userId") Long userId);
+
     @PostMapping("/internal/audit-logs")
     void writeAuditLog(@RequestBody AuditLogRequest request);
 

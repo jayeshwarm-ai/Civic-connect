@@ -5,10 +5,9 @@ import { useAuth } from '../../context/AuthContext';
 import { toast } from 'react-toastify';
 import { PageHeader } from '../../components/ui';
 
-const scopeIcon = (s) => s === 'REQUEST' ? '📋' : s === 'FEEDBACK' ? '⭐' : s === 'COMPLIANCE' ? '🛡️' : '🏢';
 const scopeBadge = (s) => (
   <span className={`badge ${s === 'REQUEST' ? 'badge-submitted' : s === 'FEEDBACK' ? 'badge-assigned' : s === 'COMPLIANCE' ? 'badge-in_progress' : 'badge-resolved'}`}>
-    {scopeIcon(s)} {s}
+    {s}
   </span>
 );
 
@@ -43,7 +42,7 @@ export default function ReportsDashboardPage() {
     setGenerating(scope);
     try {
       const res = await generateReport(scope);
-      toast.success(`✅ ${scope} report generated!`);
+      toast.success(` ${scope} report generated!`);
       setReports(prev => [res.data, ...prev]);
     } catch (err) {
       toast.error(err.response?.data?.message || `Failed to generate ${scope} report.`);
@@ -60,25 +59,23 @@ export default function ReportsDashboardPage() {
 
   return (
     <>
-      <PageHeader icon="📊" title="Reports Dashboard" subtitle="Generate and view aggregated reports across all CivicConnect services." />
+      <PageHeader icon="" title="Reports Dashboard" subtitle="Generate and view aggregated reports across all CivicConnect services." />
 
       {/* Generate buttons */}
       {canGenerate && (
         <div className="card">
-          <div className="card-title"><span className="icon icon-blue">⚡</span> Generate New Report</div>
-          <p style={{ color: 'var(--gray-500)', marginBottom: 20, fontSize: '.9rem' }}>
-            Generate a live report by pulling real-time data from all services.
+          <div className="card-title"><span className="icon icon-blue"></span>Generate New Report</div>
+          <p style={{ color: 'var(--gray-500)', marginBottom: 20, fontSize: '.9rem' }}>Generate a live report by pulling real-time data from all services.
           </p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12 }}>
             {scopes.map(scope => (
               <button key={scope} className="btn btn-outline" style={{ padding: '20px 16px', flexDirection: 'column', gap: 8 }}
                 onClick={() => handleGenerate(scope)} disabled={generating !== null}>
-                <span style={{ fontSize: '1.8rem' }}>{scopeIcon(scope)}</span>
                 <span style={{ fontWeight: 800 }}>{scope}</span>
                 <span style={{ fontSize: '.75rem', color: 'var(--gray-400)', fontWeight: 500 }}>
                   {scope === 'REQUEST' ? 'Service request stats' : scope === 'FEEDBACK' ? 'Satisfaction metrics' : scope === 'COMPLIANCE' ? 'Compliance & audit' : 'Department overview'}
                 </span>
-                {generating === scope && <span>⏳ Generating...</span>}
+                {generating === scope && <span>Generating...</span>}
               </button>
             ))}
           </div>
@@ -87,19 +84,19 @@ export default function ReportsDashboardPage() {
 
       {/* Filter */}
       <div className="card">
-        <div className="card-title"><span className="icon icon-green">📁</span> Reports ({reports.length})</div>
+        <div className="card-title"><span className="icon icon-green"></span>Reports ({reports.length})</div>
         <div style={{ display: 'flex', gap: 8, marginBottom: 20, flexWrap: 'wrap' }}>
           <button className={`btn btn-small ${filterScope === 'ALL' ? 'btn-primary' : 'btn-outline'}`} onClick={() => setFilterScope('ALL')}>All</button>
           {scopes.map(s => (
             <button key={s} className={`btn btn-small ${filterScope === s ? 'btn-primary' : 'btn-outline'}`} onClick={() => setFilterScope(s)}>
-              {scopeIcon(s)} {s}
+              {s}
             </button>
           ))}
         </div>
 
         {reports.length === 0 ? (
           <div className="empty-state">
-            <div className="empty-icon">📊</div>
+            <div className="empty-icon"></div>
             <h3>No reports yet</h3>
             <p>{canGenerate ? 'Generate your first report using the buttons above.' : 'Reports will appear here once generated.'}</p>
           </div>
@@ -115,7 +112,7 @@ export default function ReportsDashboardPage() {
                     <td>{r.generatedByName}</td>
                     <td>{new Date(r.generatedDate).toLocaleString()}</td>
                     <td>
-                      <button className="btn btn-small btn-secondary" onClick={() => setSelectedReport(r)}>👁️ View</button>
+                      <button className="btn btn-small btn-secondary" onClick={() => setSelectedReport(r)}>View</button>
                     </td>
                   </tr>
                 ))}
@@ -129,16 +126,15 @@ export default function ReportsDashboardPage() {
       {selectedReport && (
         <div className="modal-overlay" onClick={() => setSelectedReport(null)}>
           <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 650, maxHeight: '80vh', overflow: 'auto' }}>
-            <h3>{scopeIcon(selectedReport.scope)} Report #{selectedReport.reportId} — {selectedReport.scope}</h3>
+            <h3>Report #{selectedReport.reportId} — {selectedReport.scope}</h3>
             <div className="profile-grid" style={{ marginBottom: 20 }}>
-              <div className="profile-item"><label>👤 Generated By</label><div className="value">{selectedReport.generatedByName}</div></div>
-              <div className="profile-item"><label>📅 Date</label><div className="value">{new Date(selectedReport.generatedDate).toLocaleString()}</div></div>
+              <div className="profile-item"><label>Generated By</label><div className="value">{selectedReport.generatedByName}</div></div>
+              <div className="profile-item"><label>Date</label><div className="value">{new Date(selectedReport.generatedDate).toLocaleString()}</div></div>
             </div>
 
             {/* Metrics display */}
             <div style={{ background: 'var(--gray-50)', borderRadius: 14, padding: 20, border: '1px solid var(--gray-100)' }}>
-              <label style={{ fontSize: '.75rem', fontWeight: 800, color: 'var(--gray-400)', textTransform: 'uppercase', letterSpacing: 1, display: 'block', marginBottom: 12 }}>
-                📊 Report Metrics
+              <label style={{ fontSize: '.75rem', fontWeight: 800, color: 'var(--gray-400)', textTransform: 'uppercase', letterSpacing: 1, display: 'block', marginBottom: 12 }}>Report Metrics
               </label>
               {(() => {
                 const parsed = parseMetrics(selectedReport.metrics);
@@ -163,7 +159,7 @@ export default function ReportsDashboardPage() {
             </div>
 
             <div className="actions-row">
-              <button className="btn btn-secondary" onClick={() => setSelectedReport(null)}>✕ Close</button>
+              <button className="btn btn-secondary" onClick={() => setSelectedReport(null)}>Close</button>
             </div>
           </div>
         </div>

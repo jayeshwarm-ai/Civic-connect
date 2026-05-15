@@ -38,7 +38,7 @@ function StaffProfilePage() {
   }, []);
 
   if (loading) return <div className="loading"><div className="spinner"></div><br/>Loading profile...</div>;
-  if (error)   return <div className="card"><div className="error-msg">⚠️ {error}</div></div>;
+  if (error) return <div className="card"><div className="error-msg"> {error}</div></div>;
   if (!profile) return null;
 
   const statusClass =
@@ -52,7 +52,7 @@ function StaffProfilePage() {
   return (
     <>
       <PageHeader
-        icon="👤"
+        icon=""
         title={<>My Profile</>}
         subtitle="Your account details on the CivicConnect platform."
       />
@@ -73,27 +73,27 @@ function StaffProfilePage() {
 
         <div className="profile-grid">
           <div className="profile-item">
-            <label>👤 Name</label>
+            <label>Name</label>
             <div className="value">{profile.name}</div>
           </div>
           <div className="profile-item">
-            <label>🪪 User ID</label>
+            <label>User ID</label>
             <div className="value">#{profile.userId}</div>
           </div>
           <div className="profile-item">
-            <label>🎯 Role</label>
+            <label>Role</label>
             <div className="value">{profile.role.replace(/_/g, ' ')}</div>
           </div>
           <div className="profile-item">
-            <label>📧 Email</label>
+            <label>Email</label>
             <div className="value">{profile.email}</div>
           </div>
           <div className="profile-item">
-            <label>📱 Phone</label>
+            <label>Phone</label>
             <div className="value">{profile.phone}</div>
           </div>
           <div className="profile-item">
-            <label>📅 Registered On</label>
+            <label>Registered On</label>
             <div className="value">
               {profile.createdAt
                 ? new Date(profile.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
@@ -103,14 +103,14 @@ function StaffProfilePage() {
         </div>
 
         <div className="actions-row">
-          {canEdit && <Link to="/profile/edit-staff" className="btn btn-primary">✏️ Edit Profile</Link>}
-          <Link to="/help" className="btn btn-outline">❓ Help</Link>
+          {canEdit && <Link to="/profile/edit-staff" className="btn btn-primary">Edit Profile</Link>}
+          <Link to="/change-password" className="btn btn-outline">Change Password</Link>
+          <Link to="/help" className="btn btn-outline">Help</Link>
         </div>
 
         {!canEdit && (
           <div className="info-tip" style={{ width: '100%', marginTop: 16 }}>
-            <span className="tip-icon">🔒</span>
-            City Administrator profiles are managed centrally and cannot be self-edited.
+            <span className="tip-icon"></span>City Administrator profiles are managed centrally and cannot be self-edited.
           </div>
         )}
       </div>

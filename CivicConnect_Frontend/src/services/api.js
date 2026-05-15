@@ -33,8 +33,29 @@ api.interceptors.response.use(
 export const login = (email, password) =>
   api.post('/api/v1/auth/login', { email, password });
 
-export const resetPassword = (email, phone, newPassword) =>
-  api.post('/api/v1/auth/reset-password', { email, phone, newPassword });
+// ── Password recovery (security-questions flow — citizens) ──────────────
+export const getSecurityQuestions = () =>
+  api.get('/api/v1/auth/security/questions');
+
+export const setupSecurityAnswers = (answers) =>
+  api.post('/api/v1/auth/security/setup', { answers });
+
+export const forgotPasswordRequest = (email) =>
+  api.post('/api/v1/auth/security/forgot-password', { email });
+
+export const verifySecurityAnswers = (email, answers) =>
+  api.post('/api/v1/auth/security/verify-answers', { email, answers });
+
+export const resetPasswordWithToken = (resetToken, newPassword) =>
+  api.post('/api/v1/auth/security/reset', { resetToken, newPassword });
+
+// ── Self-service password change (authenticated, e.g. forced after admin reset)
+export const changeOwnPassword = (currentPassword, newPassword) =>
+  api.post('/api/v1/auth/change-password', { currentPassword, newPassword });
+
+// ── Admin-triggered staff password reset ────────────────────────────────
+export const adminResetStaffPassword = (userId) =>
+  api.post('/api/v1/auth/admin-reset-password', { userId });
 
 // ── Citizen Registration (public) ───────────────────────────────────────
 export const registerCitizen = (data) =>

@@ -79,8 +79,8 @@ function PendingDocumentsPage() {
         <div className="modal-overlay" onClick={closeViewer}>
           <div className="modal" style={{ maxWidth: 800, maxHeight: '90vh' }} onClick={e => e.stopPropagation()}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-              <h3>📄 Document #{viewingDoc.documentId}</h3>
-              <button className="btn btn-small btn-secondary" onClick={closeViewer}>✕ Close</button>
+              <h3>Document #{viewingDoc.documentId}</h3>
+              <button className="btn btn-small btn-secondary" onClick={closeViewer}>Close</button>
             </div>
             <div style={{ textAlign: 'center', maxHeight: '70vh', overflow: 'auto' }}>
               {viewingDoc.type.startsWith('image/') ? (
@@ -90,7 +90,7 @@ function PendingDocumentsPage() {
               ) : (
                 <div className="empty-state">
                   <p>Cannot preview this file type.</p>
-                  <a href={viewingDoc.url} download className="btn btn-primary">⬇️ Download</a>
+                  <a href={viewingDoc.url} download className="btn btn-primary">Download</a>
                 </div>
               )}
             </div>
@@ -99,11 +99,11 @@ function PendingDocumentsPage() {
       )}
 
       <div className="card">
-        <div className="card-title"><span className="icon">⏳</span> Pending Documents ({documents.length})</div>
+        <div className="card-title"><span className="icon"></span>Pending Documents ({documents.length})</div>
 
         {documents.length === 0 ? (
           <div className="empty-state">
-            <div className="icon">✅</div>
+            <div className="icon"></div>
             <h3>No pending documents</h3>
             <p>All documents have been reviewed.</p>
           </div>
@@ -128,16 +128,15 @@ function PendingDocumentsPage() {
                     <td>{new Date(doc.uploadedDate).toLocaleDateString()}</td>
                     <td>
                       <button className="btn btn-small btn-secondary" style={{ marginRight: 6 }}
-                        onClick={() => handleViewDocument(doc.documentId)}>
-                        👁️ View
+                        onClick={() => handleViewDocument(doc.documentId)}>View
                       </button>
                       <button className="btn btn-small btn-success" style={{ marginRight: 6 }}
                         onClick={() => handleVerify(doc.documentId)}>
-                        ✓ Verify
+                        Verify
                       </button>
                       <button className="btn btn-small btn-danger"
                         onClick={() => openRejectModal(doc.documentId)}>
-                        ✗ Reject
+                        Reject
                       </button>
                     </td>
                   </tr>

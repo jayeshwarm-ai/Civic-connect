@@ -31,9 +31,9 @@ function AdminDashboard() {
     setPending({
       title: 'Deactivate this citizen?',
       message: `Are you sure you want to deactivate ${name}'s account? They will lose access until reactivated.`,
-      confirmLabel: '🚫 Yes, deactivate',
+      confirmLabel: 'Yes, deactivate',
       variant: 'danger',
-      icon: '⚠️',
+      icon: '',
       run: async () => {
         await deactivateCitizen(citizenId);
         toast.success(`${name}'s account has been deactivated.`);
@@ -76,26 +76,26 @@ function AdminDashboard() {
   return (
     <>
       {/* Welcome Banner */}
-      <PageHeader icon="📊" title="Admin Dashboard" subtitle={<>Welcome back, {user?.name}. Manage citizens, verify documents, and oversee the CivicConnect platform.</>} />
+      <PageHeader icon="" title="Admin Dashboard" subtitle={<>Welcome back, {user?.name}. Manage citizens, verify documents, and oversee the CivicConnect platform.</>} />
 
       {/* Stats */}
       <div className="stats-row">
-        <StatCard icon="👥" label="Total Citizens"      value={citizens.length} variant="primary" />
-        <StatCard icon="✅" label="Active"              value={active}          variant="success" />
-        <StatCard icon="⏳" label="Pending Verification" value={inactive}        variant="warning" />
-        <StatCard icon="🚫" label="Suspended"           value={suspended}       variant="danger"  />
+        <StatCard icon="" label="Total Citizens" value={citizens.length} variant="primary" />
+        <StatCard icon="" label="Active" value={active} variant="success" />
+        <StatCard icon="" label="Pending Verification" value={inactive}        variant="warning" />
+        <StatCard icon="" label="Suspended" value={suspended} variant="danger" />
       </div>
 
       {/* Citizens Table */}
       <div className="card">
         <div className="card-title">
-          <span className="icon icon-blue">👥</span> All Citizens
+          <span className="icon icon-blue"></span>All Citizens
         </div>
 
         <div className="search-bar">
           <input
             type="text"
-            placeholder="🔍 Search by name, email, or phone..."
+            placeholder="Search by name, email, or phone..."
             value={search}
             onChange={e => setSearch(e.target.value)}
           />
@@ -103,7 +103,7 @@ function AdminDashboard() {
 
         {filtered.length === 0 ? (
           <div className="empty-state">
-            <div className="empty-icon">👤</div>
+            <div className="empty-icon"></div>
             <h3>{search ? 'No citizens match your search' : 'No citizens registered yet'}</h3>
             <p>{search ? 'Try a different search term.' : 'Citizens will appear here once they register.'}</p>
           </div>
@@ -145,13 +145,12 @@ function AdminDashboard() {
                     <td>{new Date(c.createdAt).toLocaleDateString()}</td>
                     <td>
                       <div style={{ display: 'flex', gap: 6 }}>
-                        <Link to={`/admin/citizens/${c.citizenId}`} className="btn btn-small btn-secondary">
-                          👁️ View
+                        <Link to={`/admin/citizens/${c.citizenId}`} className="btn btn-small btn-secondary">View
                         </Link>
                         {c.accountStatus !== 'SUSPENDED' && (
                           <button className="btn btn-small btn-danger"
                             onClick={() => handleDeactivate(c.citizenId, c.name)}>
-                            🚫
+                            Deactivate
                           </button>
                         )}
                       </div>

@@ -26,7 +26,7 @@ export default function CreateComplianceRecordPage() {
   const [checking, setChecking] = useState(false);
   const [exists, setExists]     = useState(null);
 
-  // Eligibility tracking — populated by clicking the "🔍 Check" button.
+  // Eligibility tracking — populated by clicking the "Check" button.
   // `eligible === null` means "not yet checked".
   const [entityStatus, setEntityStatus] = useState(null);
   const [eligible, setEligible]         = useState(null);
@@ -51,7 +51,7 @@ export default function CreateComplianceRecordPage() {
       } catch {
         setEligible(false);
         setEntityStatus('NOT_FOUND');
-        toast.error(`❌ ${form.type} #${form.entityId} not found.`);
+        toast.error(` ${form.type} #${form.entityId} not found.`);
         return;
       }
 
@@ -66,8 +66,8 @@ export default function CreateComplianceRecordPage() {
       if (!isEligible) {
         toast.error(
           form.type === 'REQUEST'
-            ? `❌ Request #${form.entityId} is in "${status}" state. Compliance records can only be created for CLOSED requests.`
-            : `❌ Resolution #${form.entityId} is in "${status}" state. Compliance records can only be created for COMPLETED resolutions.`
+            ? ` Request #${form.entityId} is in "${status}" state. Compliance records can only be created for CLOSED requests.`
+            : ` Resolution #${form.entityId} is in "${status}" state. Compliance records can only be created for COMPLETED resolutions.`
         );
         return;
       }
@@ -78,7 +78,7 @@ export default function CreateComplianceRecordPage() {
         setExists(res.data[0]);
       } else {
         setExists(null);
-        toast.success('✅ Eligible — no existing compliance record. You can create one.');
+        toast.success('Eligible — no existing compliance record. You can create one.');
       }
     } catch {
       setExists(null);
@@ -95,8 +95,8 @@ export default function CreateComplianceRecordPage() {
     if (eligible !== true) {
       setError(
         form.type === 'REQUEST'
-          ? 'Please click "🔍 Check" first. Compliance records can only be created for CLOSED service requests.'
-          : 'Please click "🔍 Check" first. Compliance records can only be created for COMPLETED resolutions.'
+          ? 'Please click "Check" first. Compliance records can only be created for CLOSED service requests.'
+          : 'Please click "Check" first. Compliance records can only be created for COMPLETED resolutions.'
       );
       return;
     }
@@ -113,7 +113,7 @@ export default function CreateComplianceRecordPage() {
         result: form.result,
         notes: form.notes,
       });
-      toast.success('✅ Compliance record created!');
+      toast.success('Compliance record created!');
       navigate(`/compliance/records/${res.data.complianceId}`);
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to create compliance record.');
@@ -127,36 +127,33 @@ export default function CreateComplianceRecordPage() {
 
   return (
     <>
-      <PageHeader icon="➕" title="Create Compliance Record" subtitle="Review a closed request or completed resolution and record your compliance findings." />
+      <PageHeader icon="" title="Create Compliance Record" subtitle="Review a closed request or completed resolution and record your compliance findings." />
 
       <div className="card">
-        <div className="card-title"><span className="icon icon-blue">🛡️</span> New Compliance Check</div>
+        <div className="card-title"><span className="icon icon-blue"></span>New Compliance Check</div>
 
-        {error && <div className="error-msg">⚠️ {error}</div>}
+        {error && <div className="error-msg"> {error}</div>}
 
         <div className="info-tip" style={{ width: '100%', marginBottom: 20 }}>
-          <span className="tip-icon">💡</span>
-          Only create compliance records for <strong>CLOSED</strong> service requests or <strong>COMPLETED</strong> resolutions. One record per entity.
+          <span className="tip-icon"></span>Only create compliance records for <strong>CLOSED</strong> service requests or <strong>COMPLETED</strong> resolutions. One record per entity.
         </div>
 
         {exists && (
           <div className="error-msg" style={{ background: '#fef3c7', borderColor: '#f59e0b', color: '#92400e' }}>
-            ⚠️ A compliance record already exists for this {form.type} #{form.entityId}:
+            A compliance record already exists for this {form.type} #{form.entityId}:
             <strong> {exists.result}</strong> (ID: #{exists.complianceId})
           </div>
         )}
 
         {/* Eligibility banner — shown after the user clicks Check */}
         {eligible === false && entityStatus && (
-          <div className="error-msg" style={{ background: '#fee2e2', borderColor: '#fecaca', color: '#991b1b' }}>
-            🚫 This {form.type.toLowerCase()} is in <strong>{entityStatus}</strong> state. A compliance record can only be created when it is{' '}
+          <div className="error-msg" style={{ background: '#fee2e2', borderColor: '#fecaca', color: '#991b1b' }}>This {form.type.toLowerCase()} is in <strong>{entityStatus}</strong> state. A compliance record can only be created when it is{' '}
             <strong>{form.type === 'REQUEST' ? 'CLOSED' : 'COMPLETED'}</strong>.
           </div>
         )}
         {eligible === true && !exists && entityStatus && (
           <div className="info-tip" style={{ width: '100%', marginBottom: 20, background: '#d1fae5', borderColor: '#a7f3d0', color: '#065f46' }}>
-            <span className="tip-icon">✅</span>
-            Eligible — {form.type.toLowerCase()} #{form.entityId} is in <strong>{entityStatus}</strong> state. You can create a compliance record.
+            <span className="tip-icon"></span>Eligible — {form.type.toLowerCase()} #{form.entityId} is in <strong>{entityStatus}</strong> state. You can create a compliance record.
           </div>
         )}
 
@@ -176,7 +173,7 @@ export default function CreateComplianceRecordPage() {
                   onChange={onEntityIdChange}
                   placeholder={`Enter ${form.type.toLowerCase()} ID`} required min="1" />
                 <button type="button" className="btn btn-outline btn-small" onClick={checkExisting} disabled={checking || !form.entityId}>
-                  {checking ? '⏳' : '🔍 Check'}
+                  {checking ? '' : 'Check'}
                 </button>
               </div>
             </div>
@@ -194,7 +191,7 @@ export default function CreateComplianceRecordPage() {
               }}>
                 <input type="radio" name="result" value="PASS" checked={form.result === 'PASS'}
                   onChange={e => setForm({ ...form, result: e.target.value })} style={{ width: 'auto' }} />
-                ✅ PASS — Meets compliance standards
+                PASS — Meets compliance standards
               </label>
               <label style={{
                 display: 'flex', alignItems: 'center', gap: 10, padding: '16px 28px',
@@ -205,7 +202,7 @@ export default function CreateComplianceRecordPage() {
               }}>
                 <input type="radio" name="result" value="FAIL" checked={form.result === 'FAIL'}
                   onChange={e => setForm({ ...form, result: e.target.value })} style={{ width: 'auto' }} />
-                ❌ FAIL — Does not meet standards
+                FAIL — Does not meet standards
               </label>
             </div>
           </div>
@@ -221,21 +218,20 @@ export default function CreateComplianceRecordPage() {
 
           {form.result === 'FAIL' && (
             <div className="info-tip" style={{ width: '100%', marginBottom: 20, background: '#fef2f2', borderColor: '#fecaca', color: '#991b1b' }}>
-              <span className="tip-icon">🔔</span>
+              <span className="tip-icon"></span>
               A <strong>FAIL</strong> result will automatically generate a notification to the responsible officer.
             </div>
           )}
 
           <div className="actions-row">
             <button className="btn btn-primary" disabled={submitDisabled}>
-              {loading ? '⏳ Creating...' : '🛡️ Submit Compliance Record'}
+              {loading ? 'Creating...' : 'Submit Compliance Record'}
             </button>
             <button type="button" className="btn btn-outline" onClick={() => navigate(-1)}>Cancel</button>
           </div>
 
           {eligible !== true && !error && (
-            <p style={{ marginTop: 12, fontSize: '0.85rem', color: 'var(--gray-500)' }}>
-              ℹ️ Submit will be enabled after you click <strong>🔍 Check</strong> and the {form.type.toLowerCase()} is confirmed eligible.
+            <p style={{ marginTop: 12, fontSize: '0.85rem', color: 'var(--gray-500)' }}>Submit will be enabled after you click <strong>Check</strong> and the {form.type.toLowerCase()} is confirmed eligible.
             </p>
           )}
         </form>

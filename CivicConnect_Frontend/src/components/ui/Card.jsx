@@ -4,8 +4,8 @@ import React from 'react';
  * Card — standard surface for grouped content.
  *
  * Usage:
- *   <Card title="Profile" icon="👤">...</Card>
- *   <Card title="Recent activity" icon="📋" actions={<button>View all</button>}>...</Card>
+ * <Card title="Profile" icon="">...</Card>
+ * <Card title="Recent activity" icon="" actions={<button>View all</button>}>...</Card>
  *
  * Props:
  *   title    — heading shown at the top of the card.

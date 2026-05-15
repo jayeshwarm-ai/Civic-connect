@@ -37,9 +37,9 @@ function CitizenDetailPage() {
     setPending({
       title: 'Deactivate this citizen?',
       message: 'They will lose access to the portal until reactivated. This action can be reversed later.',
-      confirmLabel: '🚫 Yes, deactivate',
+      confirmLabel: 'Yes, deactivate',
       variant: 'danger',
-      icon: '⚠️',
+      icon: '',
       run: async () => {
         await deactivateCitizen(citizenId);
         toast.success('Citizen deactivated.');
@@ -96,8 +96,8 @@ function CitizenDetailPage() {
         <div className="modal-overlay" onClick={closeViewer}>
           <div className="modal" style={{ maxWidth: 800, maxHeight: '90vh' }} onClick={e => e.stopPropagation()}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-              <h3>📄 Document #{viewingDoc.documentId}</h3>
-              <button className="btn btn-small btn-secondary" onClick={closeViewer}>✕ Close</button>
+              <h3>Document #{viewingDoc.documentId}</h3>
+              <button className="btn btn-small btn-secondary" onClick={closeViewer}>Close</button>
             </div>
             <div style={{ textAlign: 'center', maxHeight: '70vh', overflow: 'auto' }}>
               {viewingDoc.type && viewingDoc.type.startsWith('image/') ? (
@@ -107,7 +107,7 @@ function CitizenDetailPage() {
               ) : (
                 <div className="empty-state">
                   <p>Cannot preview this file type.</p>
-                  <a href={viewingDoc.url} download className="btn btn-primary">⬇️ Download</a>
+                  <a href={viewingDoc.url} download className="btn btn-primary">Download</a>
                 </div>
               )}
             </div>
@@ -130,29 +130,29 @@ function CitizenDetailPage() {
         </div>
 
         <div className="profile-grid">
-          <div className="profile-item"><label>📧 Email</label><div className="value">{citizen.email}</div></div>
-          <div className="profile-item"><label>📱 Phone</label><div className="value">{citizen.phone}</div></div>
-          <div className="profile-item"><label>🎂 DOB</label><div className="value">{citizen.dob}</div></div>
-          <div className="profile-item"><label>👤 Gender</label><div className="value">{citizen.gender}</div></div>
-          <div className="profile-item"><label>📍 Address</label><div className="value">{citizen.address}</div></div>
-          <div className="profile-item"><label>📋 Contact Info</label><div className="value">{citizen.contactInfo}</div></div>
-          <div className="profile-item"><label>📅 Registered</label><div className="value">{new Date(citizen.createdAt).toLocaleString()}</div></div>
-          <div className="profile-item"><label>🔄 Updated</label><div className="value">{new Date(citizen.updatedAt).toLocaleString()}</div></div>
+          <div className="profile-item"><label>Email</label><div className="value">{citizen.email}</div></div>
+          <div className="profile-item"><label>Phone</label><div className="value">{citizen.phone}</div></div>
+          <div className="profile-item"><label>DOB</label><div className="value">{citizen.dob}</div></div>
+          <div className="profile-item"><label>Gender</label><div className="value">{citizen.gender}</div></div>
+          <div className="profile-item"><label>Address</label><div className="value">{citizen.address}</div></div>
+          <div className="profile-item"><label>Contact Info</label><div className="value">{citizen.contactInfo}</div></div>
+          <div className="profile-item"><label>Registered</label><div className="value">{new Date(citizen.createdAt).toLocaleString()}</div></div>
+          <div className="profile-item"><label>Updated</label><div className="value">{new Date(citizen.updatedAt).toLocaleString()}</div></div>
         </div>
 
         <div className="actions-row">
           <button className="btn btn-secondary" onClick={() => navigate('/admin')}>← Back to Dashboard</button>
           {citizen.accountStatus !== 'SUSPENDED' && (
-            <button className="btn btn-danger" onClick={handleDeactivate}>🚫 Deactivate Account</button>
+            <button className="btn btn-danger" onClick={handleDeactivate}>Deactivate Account</button>
           )}
         </div>
       </div>
 
       <div className="card">
-        <div className="card-title"><span className="icon icon-green">📄</span> Documents ({documents.length})</div>
+        <div className="card-title"><span className="icon icon-green"></span>Documents ({documents.length})</div>
         {documents.length === 0 ? (
           <div className="empty-state">
-            <div className="empty-icon">📁</div>
+            <div className="empty-icon"></div>
             <h3>No documents uploaded</h3>
             <p>This citizen has not uploaded any documents yet.</p>
           </div>
@@ -166,14 +166,13 @@ function CitizenDetailPage() {
                 {documents.map(d => (
                   <tr key={d.documentId}>
                     <td style={{ fontWeight: 700 }}>#{d.documentId}</td>
-                    <td>{d.docType === 'ID_PROOF' ? '🪪' : '🏠'} {d.docType.replace('_', ' ')}</td>
+                    <td>{d.docType === 'ID_PROOF' ? '' : ''} {d.docType.replace('_', ' ')}</td>
                     <td>{docStatusBadge(d.verificationStatus)}</td>
                     <td>{new Date(d.uploadedDate).toLocaleDateString()}</td>
                     <td style={{ color: d.remarks ? '#991b1b' : '#94a3b8' }}>{d.remarks || '—'}</td>
                     <td>
                       <button className="btn btn-small btn-secondary"
-                        onClick={() => handleViewDocument(d.documentId)}>
-                        👁️ View
+                        onClick={() => handleViewDocument(d.documentId)}>View
                       </button>
                     </td>
                   </tr>
