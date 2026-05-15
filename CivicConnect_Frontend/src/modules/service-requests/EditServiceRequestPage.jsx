@@ -76,7 +76,7 @@ export default function EditServiceRequestPage() {
     setSaving(true);
     try {
       await api.put(`/api/v1/service-requests/${requestId}`, form);
-      toast.success('✅ Request updated!');
+      toast.success('Request updated!');
       navigate('/service-requests');
     } catch (err) {
       setServerError(err.response?.data?.message || 'Update failed.');
@@ -90,22 +90,22 @@ export default function EditServiceRequestPage() {
   return (
     <>
       <PageHeader
-        icon="✏️"
+        icon=""
         title={<>Edit Service Request #{requestId}</>}
         subtitle="Update your submitted service request details."
       />
       <div className="card">
-        <div className="card-title"><span className="icon icon-blue">✏️</span> Edit Request</div>
+        <div className="card-title"><span className="icon icon-blue"></span>Edit Request</div>
 
-        {serverError && <div className="error-msg">⚠️ {serverError}</div>}
+        {serverError && <div className="error-msg"> {serverError}</div>}
 
         <form onSubmit={handleSubmit} noValidate>
           <div className="form-group">
             <label>Request Type *</label>
             <select value={form.type} onChange={e => setField('type', e.target.value)}>
-              <option value="ROAD">🛣️ Road</option>
-              <option value="WATER">💧 Water</option>
-              <option value="ELECTRICITY">⚡ Electricity</option>
+              <option value="ROAD">Road</option>
+              <option value="WATER">Water</option>
+              <option value="ELECTRICITY">Electricity</option>
             </select>
           </div>
 
@@ -138,10 +138,9 @@ export default function EditServiceRequestPage() {
 
           <div className="actions-row">
             <button className="btn btn-primary" disabled={saving}>
-              {saving ? '⏳ Saving...' : '💾 Save Changes'}
+              {saving ? 'Saving...' : 'Save Changes'}
             </button>
-            <button type="button" className="btn btn-outline" onClick={() => navigate('/service-requests')}>
-              Cancel
+            <button type="button" className="btn btn-outline" onClick={() => navigate('/service-requests')}>Cancel
             </button>
           </div>
         </form>

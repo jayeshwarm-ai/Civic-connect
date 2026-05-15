@@ -14,7 +14,7 @@ export default function FieldError({ message }) {
   if (!message) return null;
   return (
     <div className="field-error" role="alert" aria-live="polite">
-      <span className="field-error__icon" aria-hidden="true">⚠️</span>
+      <span className="field-error__icon" aria-hidden="true"></span>
       <span>{message}</span>
     </div>
   );

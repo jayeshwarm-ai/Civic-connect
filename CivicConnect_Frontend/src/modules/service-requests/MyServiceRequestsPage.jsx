@@ -5,14 +5,13 @@ import { PageHeader, StatCard, FeedbackPromptModal, ConfirmModal } from '../../c
 import { toast } from 'react-toastify';
 
 const badge = (s) => <span className={`badge badge-${s.toLowerCase()}`}>{s.replace('_',' ')}</span>;
-const typeIcon = (t) => t==='ROAD'?'🛣️':t==='WATER'?'💧':'⚡';
 
 const STATUS_META = {
-  SUBMITTED:   { icon: '📝', variant: 'primary' },
-  ASSIGNED:    { icon: '👤', variant: 'info'    },
-  IN_PROGRESS: { icon: '🔄', variant: 'warning' },
-  RESOLVED:    { icon: '✅', variant: 'success' },
-  CLOSED:      { icon: '📁', variant: 'neutral' },
+  SUBMITTED: { icon: '', variant: 'primary' },
+  ASSIGNED: { icon: '', variant: 'info' },
+  IN_PROGRESS: { icon: '', variant: 'warning' },
+  RESOLVED: { icon: '', variant: 'success' },
+  CLOSED: { icon: '', variant: 'neutral' },
 };
 
 export default function MyServiceRequestsPage() {
@@ -39,9 +38,9 @@ export default function MyServiceRequestsPage() {
     setPending({
       title: 'Close this request?',
       message: 'You\'re marking this resolved request as closed. This finalises the request lifecycle.',
-      confirmLabel: '✓ Yes, close it',
+      confirmLabel: 'Yes, close it',
       variant: 'success',
-      icon: '✅',
+      icon: '',
       run: async () => {
         await closeServiceRequest(id);
         toast.success('Request closed!');
@@ -55,9 +54,9 @@ export default function MyServiceRequestsPage() {
     setPending({
       title: 'Withdraw this request?',
       message: 'This cannot be undone. The request will be removed from your active list.',
-      confirmLabel: '🗑️ Yes, withdraw',
+      confirmLabel: 'Yes, withdraw',
       variant: 'danger',
-      icon: '⚠️',
+      icon: '',
       run: async () => {
         await withdrawServiceRequest(id);
         toast.success('Request withdrawn.');
@@ -90,10 +89,10 @@ export default function MyServiceRequestsPage() {
 
   return (
     <>
-      <PageHeader icon="📋" title="My Service Requests" subtitle="Track and manage all your submitted service requests." />
+      <PageHeader icon="" title="My Service Requests" subtitle="Track and manage all your submitted service requests." />
 
       <div style={{display:'flex',justifyContent:'flex-end',marginBottom:16}}>
-        <Link to="/service-requests/new" className="btn btn-primary">➕ Submit New Request</Link>
+        <Link to="/service-requests/new" className="btn btn-primary">Submit New Request</Link>
       </div>
 
       <div className="stats-row">
@@ -114,7 +113,7 @@ export default function MyServiceRequestsPage() {
       </div>
 
       <div className="card">
-        <div className="card-title"><span className="icon icon-blue">📋</span> Requests ({filtered.length})</div>
+        <div className="card-title"><span className="icon icon-blue"></span>Requests ({filtered.length})</div>
         <div style={{display:'flex',gap:8,marginBottom:20,flexWrap:'wrap'}}>
           {['ALL','SUBMITTED','ASSIGNED','IN_PROGRESS','RESOLVED','CLOSED'].map(s => (
             <button key={s} className={`btn btn-small ${filter===s?'btn-primary':'btn-outline'}`} onClick={()=>setFilter(s)}>{s.replace('_',' ')}</button>
@@ -123,7 +122,7 @@ export default function MyServiceRequestsPage() {
 
         {filtered.length === 0 ? (
           <div className="empty-state">
-            <div className="empty-icon">📭</div>
+            <div className="empty-icon"></div>
             <h3>{requests.length === 0 ? 'No requests yet' : `No ${filter === 'ALL' ? '' : filter.replace('_', ' ').toLowerCase() + ' '}requests`}</h3>
             <p>{requests.length === 0
               ? 'You haven\'t submitted any service requests yet. Use the button above to get started.'
@@ -137,17 +136,17 @@ export default function MyServiceRequestsPage() {
             {filtered.map(r => (
               <tr key={r.requestId}>
                 <td style={{fontWeight:700}}>#{r.requestId}</td>
-                <td>{typeIcon(r.type)} {r.type}</td>
+                <td>{r.type}</td>
                 <td style={{maxWidth:200,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{r.description}</td>
                 <td>{badge(r.status)}</td>
                 <td>{r.assignedOfficerName || <span style={{color:'var(--gray-400)',fontStyle:'italic'}}>Unassigned</span>}</td>
                 <td>{new Date(r.createdAt).toLocaleDateString()}</td>
                 <td>
                   <div style={{display:'flex',gap:4}}>
-                    <Link to={`/service-requests/${r.requestId}`} className="btn btn-small btn-secondary">👁️</Link>
-                    {r.status==='SUBMITTED' && <Link to={`/service-requests/${r.requestId}/edit`} className="btn btn-small btn-primary">✏️ Edit</Link>}
-                    {r.status==='RESOLVED' && <button className="btn btn-small btn-success" onClick={()=>handleClose(r.requestId)}>✓ Close</button>}
-                    {r.status==='SUBMITTED' && <button className="btn btn-small btn-danger" onClick={()=>handleWithdraw(r.requestId)}>🗑️</button>}
+                    <Link to={`/service-requests/${r.requestId}`} className="btn btn-small btn-secondary">View</Link>
+                    {r.status==='SUBMITTED' && <Link to={`/service-requests/${r.requestId}/edit`} className="btn btn-small btn-primary">Edit</Link>}
+                    {r.status==='RESOLVED' && <button className="btn btn-small btn-success" onClick={()=>handleClose(r.requestId)}>Close</button>}
+                    {r.status==='SUBMITTED' && <button className="btn btn-small btn-danger" onClick={()=>handleWithdraw(r.requestId)}>Withdraw</button>}
                   </div>
                 </td>
               </tr>

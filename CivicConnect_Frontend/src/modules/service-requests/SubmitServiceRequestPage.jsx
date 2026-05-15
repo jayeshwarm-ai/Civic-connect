@@ -64,7 +64,7 @@ export default function SubmitServiceRequestPage() {
     try {
       await submitServiceRequest(form);
       setSubmitted(true);
-      toast.success('🎉 Service request submitted!');
+      toast.success('Service request submitted!');
       navigate('/service-requests');
     } catch (err) {
       setServerError(err.response?.data?.message || 'Submission failed. Make sure your account is ACTIVE.');
@@ -76,18 +76,17 @@ export default function SubmitServiceRequestPage() {
   return (
     <>
       <PageHeader
-        icon="➕"
+        icon=""
         title="Submit Service Request"
         subtitle="Report an issue with road, water, or electricity services in your area."
       />
       <div className="card">
-        <div className="card-title"><span className="icon icon-blue">📝</span> New Request</div>
+        <div className="card-title"><span className="icon icon-blue"></span>New Request</div>
 
-        {serverError && <div className="error-msg">⚠️ {serverError}</div>}
+        {serverError && <div className="error-msg"> {serverError}</div>}
 
         <div className="info-tip" style={{ width: '100%', marginBottom: 20 }}>
-          <span className="tip-icon">💡</span>
-          Your account must be <strong>ACTIVE</strong> (documents verified) to submit requests.
+          <span className="tip-icon"></span>Your account must be <strong>ACTIVE</strong> (documents verified) to submit requests.
         </div>
 
         <form onSubmit={handleSubmit} noValidate>
@@ -95,9 +94,9 @@ export default function SubmitServiceRequestPage() {
           <div className="form-group">
             <label>Request Type *</label>
             <select value={form.type} onChange={e => setField('type', e.target.value)}>
-              <option value="ROAD">🛣️ Road</option>
-              <option value="WATER">💧 Water</option>
-              <option value="ELECTRICITY">⚡ Electricity</option>
+              <option value="ROAD">Road</option>
+              <option value="WATER">Water</option>
+              <option value="ELECTRICITY">Electricity</option>
             </select>
           </div>
 
@@ -134,10 +133,9 @@ export default function SubmitServiceRequestPage() {
 
           <div className="actions-row">
             <button className="btn btn-primary" disabled={loading || submitted}>
-              {loading ? '⏳ Submitting...' : submitted ? '✅ Submitted' : '📨 Submit Request'}
+              {loading ? 'Submitting...' : submitted ? 'Submitted' : 'Submit Request'}
             </button>
-            <button type="button" className="btn btn-outline" onClick={() => navigate('/service-requests')}>
-              Cancel
+            <button type="button" className="btn btn-outline" onClick={() => navigate('/service-requests')}>Cancel
             </button>
           </div>
         </form>

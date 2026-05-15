@@ -4,10 +4,9 @@ import { useAuth } from '../../context/AuthContext';
 import { toast } from 'react-toastify';
 import { PageHeader, StatCard } from '../../components/ui';
 
-const catIcon = (c) => c === 'REQUEST' ? '📋' : c === 'RESOLUTION' ? '🔧' : c === 'FEEDBACK' ? '⭐' : c === 'COMPLIANCE' ? '🛡️' : c === 'REPORT' ? '📊' : '🔔';
 const catBadge = (c) => (
   <span className={`badge ${c === 'REQUEST' ? 'badge-submitted' : c === 'RESOLUTION' ? 'badge-in_progress' : c === 'FEEDBACK' ? 'badge-assigned' : c === 'COMPLIANCE' ? 'badge-pending' : 'badge-resolved'}`}>
-    {catIcon(c)} {c}
+    {c}
   </span>
 );
 
@@ -81,11 +80,11 @@ export default function NotificationsPage() {
 
   return (
     <>
-      <PageHeader icon="🔔" title="Notifications" subtitle="Stay updated with all activities across CivicConnect services." />
+      <PageHeader icon="" title="Notifications" subtitle="Stay updated with all activities across CivicConnect services." />
 
       <div className="stats-row">
-        <StatCard icon="🔔" label="Total"  value={notifications.length} variant="primary" />
-        <StatCard icon="🔴" label="Unread" value={unreadCount}           variant="danger"  />
+        <StatCard icon="" label="Total" value={notifications.length} variant="primary" />
+        <StatCard icon="" label="Unread" value={unreadCount} variant="danger" />
       </div>
 
       {/* Filters */}
@@ -94,7 +93,7 @@ export default function NotificationsPage() {
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
             {categories.map(c => (
               <button key={c} className={`btn btn-small ${filter === c ? 'btn-primary' : 'btn-outline'}`} onClick={() => setFilter(c)}>
-                {c === 'ALL' ? '📬 All' : `${catIcon(c)} ${c}`}
+                {c === 'ALL' ? 'All' : c}
               </button>
             ))}
           </div>
@@ -102,7 +101,7 @@ export default function NotificationsPage() {
             {['ALL_STATUS', 'UNREAD', 'READ', 'DISMISSED'].map(s => (
               <button key={s} className={`btn btn-small ${showFilter === s ? 'btn-secondary' : 'btn-outline'}`}
                 onClick={() => setShowFilter(s)} style={{ fontSize: '.75rem' }}>
-                {s === 'ALL_STATUS' ? 'All' : s === 'UNREAD' ? '🔴 Unread' : s === 'READ' ? '✅ Read' : '🗑️ Dismissed'}
+                {s === 'ALL_STATUS' ? 'All' : s === 'UNREAD' ? 'Unread' : s === 'READ' ? 'Read' : 'Dismissed'}
               </button>
             ))}
           </div>
@@ -110,13 +109,13 @@ export default function NotificationsPage() {
 
         {unreadCount > 0 && (
           <div style={{ marginBottom: 16 }}>
-            <button className="btn btn-small btn-success" onClick={handleMarkAllRead}>✅ Mark All as Read ({unreadCount})</button>
+            <button className="btn btn-small btn-success" onClick={handleMarkAllRead}>Mark All as Read ({unreadCount})</button>
           </div>
         )}
 
         {notifications.length === 0 ? (
           <div className="empty-state">
-            <div className="empty-icon">🔔</div>
+            <div className="empty-icon"></div>
             <h3>No notifications</h3>
             <p>You're all caught up! Notifications from all services will appear here.</p>
           </div>
@@ -129,13 +128,6 @@ export default function NotificationsPage() {
                 borderRadius: 'var(--radius-sm)', border: `1px solid ${n.status === 'UNREAD' ? '#bfdbfe' : 'var(--gray-100)'}`,
                 opacity: n.status === 'DISMISSED' ? 0.6 : 1, transition: 'var(--transition)',
               }}>
-                <div style={{
-                  width: 44, height: 44, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: '1.3rem', flexShrink: 0,
-                  background: n.status === 'UNREAD' ? '#dbeafe' : 'var(--gray-100)',
-                }}>
-                  {catIcon(n.category)}
-                </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
                     {catBadge(n.category)}
@@ -146,22 +138,20 @@ export default function NotificationsPage() {
                   </div>
                   <p style={{ fontSize: '.92rem', color: 'var(--gray-700)', lineHeight: 1.5, margin: 0 }}>{n.message}</p>
                   {n.requestId && (
-                    <span style={{ fontSize: '.8rem', color: 'var(--gray-400)', marginTop: 4, display: 'inline-block' }}>
-                      📋 Request #{n.requestId}
+                    <span style={{ fontSize: '.8rem', color: 'var(--gray-400)', marginTop: 4, display: 'inline-block' }}>Request #{n.requestId}
                     </span>
                   )}
                   {n.resolutionId && (
-                    <span style={{ fontSize: '.8rem', color: 'var(--gray-400)', marginTop: 4, marginLeft: n.requestId ? 12 : 0, display: 'inline-block' }}>
-                      🔧 Resolution #{n.resolutionId}
+                    <span style={{ fontSize: '.8rem', color: 'var(--gray-400)', marginTop: 4, marginLeft: n.requestId ? 12 : 0, display: 'inline-block' }}>Resolution #{n.resolutionId}
                     </span>
                   )}
                 </div>
                 <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
                   {n.status === 'UNREAD' && (
-                    <button className="btn btn-small btn-secondary" onClick={() => handleMarkRead(n.notificationId)} title="Mark as read">✅</button>
+                    <button className="btn btn-small btn-secondary" onClick={() => handleMarkRead(n.notificationId)} title="Mark as read">Mark read</button>
                   )}
                   {n.status !== 'DISMISSED' && (
-                    <button className="btn btn-small btn-outline" onClick={() => handleDismiss(n.notificationId)} title="Dismiss" style={{ padding: '6px 10px' }}>🗑️</button>
+                    <button className="btn btn-small btn-outline" onClick={() => handleDismiss(n.notificationId)} title="Dismiss">Dismiss</button>
                   )}
                 </div>
               </div>

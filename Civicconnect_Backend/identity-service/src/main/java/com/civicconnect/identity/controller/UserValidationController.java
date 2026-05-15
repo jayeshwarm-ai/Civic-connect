@@ -134,6 +134,23 @@ public class UserValidationController {
         return ResponseEntity.noContent().build();
     }
 
+    // ── POST /{userId}/deactivate — called by citizen-service on re-verification ───
+    /**
+     * Moves a user back to INACTIVE so the document-verification flow can
+     * restart. Called by citizen-service when an ACTIVE citizen changes
+     * their address and needs to re-upload Residence Proof for verification.
+     * Unlike /suspend, this is not a punitive block — it just means
+     * "needs to complete verification again".
+     */
+    @PostMapping("/{userId}/deactivate")
+    public ResponseEntity<Void> deactivateUser(@PathVariable Long userId) {
+        userRepository.findById(userId).ifPresent(user -> {
+            user.setStatus(UserStatus.INACTIVE);
+            userRepository.save(user);
+        });
+        return ResponseEntity.noContent().build();
+    }
+
     // ── Inner DTO ─────────────────────────────────────────────────────────────
     @Getter
     @Setter

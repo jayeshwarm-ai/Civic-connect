@@ -28,7 +28,7 @@ function ProfilePage() {
   }, []);
 
   if (loading) return <div className="loading"><div className="spinner"></div><br/>Loading profile...</div>;
-  if (error) return <div className="card"><div className="error-msg">⚠️ {error}</div></div>;
+  if (error) return <div className="card"><div className="error-msg"> {error}</div></div>;
 
   const statusClass = profile.accountStatus === 'ACTIVE' ? 'badge-active'
     : profile.accountStatus === 'SUSPENDED' ? 'badge-suspended' : 'badge-inactive';
@@ -43,7 +43,7 @@ function ProfilePage() {
   return (
     <>
       {/* Welcome Banner */}
-      <PageHeader icon="👋" title={<>Welcome back, {profile.name}!</>} subtitle={<>{isActive
+      <PageHeader icon="" title={<>Welcome back, {profile.name}!</>} subtitle={<>{isActive
             ? 'Your account is active and verified. You have full access to all CivicConnect services.'
             : 'Complete the steps below to activate your account and access all services.'}</>} />
 
@@ -51,7 +51,7 @@ function ProfilePage() {
       {!isActive && (
         <div className="card">
           <div className="card-title">
-            <span className="icon icon-blue">🚀</span> Account Activation Progress
+            <span className="icon icon-blue"></span>Account Activation Progress
           </div>
           <div className="steps">
             <div className={`step completed`}>
@@ -73,13 +73,11 @@ function ProfilePage() {
           </div>
           {!hasIdProof || !hasResProof ? (
             <div className="info-tip">
-              <span className="tip-icon">💡</span>
-              Please upload your <strong>ID Proof</strong> and <strong>Residence Proof</strong> to proceed with verification.
+              <span className="tip-icon"></span>Please upload your <strong>ID Proof</strong> and <strong>Residence Proof</strong> to proceed with verification.
             </div>
           ) : !idVerified || !resVerified ? (
             <div className="info-tip">
-              <span className="tip-icon">⏳</span>
-              Your documents are under review. You'll be notified once verified.
+              <span className="tip-icon"></span>Your documents are under review. You'll be notified once verified.
             </div>
           ) : null}
         </div>
@@ -102,43 +100,45 @@ function ProfilePage() {
 
         <div className="profile-grid">
           <div className="profile-item">
-            <label>📧 Email</label>
+            <label>Email</label>
             <div className="value">{profile.email}</div>
           </div>
           <div className="profile-item">
-            <label>📱 Phone</label>
+            <label>Phone</label>
             <div className="value">{profile.phone}</div>
           </div>
           <div className="profile-item">
-            <label>🎂 Date of Birth</label>
+            <label>Date of Birth</label>
             <div className="value">{profile.dob}</div>
           </div>
           <div className="profile-item">
-            <label>👤 Gender</label>
+            <label>Gender</label>
             <div className="value">{profile.gender}</div>
           </div>
           <div className="profile-item">
-            <label>📍 Address</label>
+            <label>Address</label>
             <div className="value">{profile.address}</div>
           </div>
           <div className="profile-item">
-            <label>📋 Contact Info</label>
+            <label>Contact Info</label>
             <div className="value">{profile.contactInfo}</div>
           </div>
           <div className="profile-item">
-            <label>📅 Registered On</label>
+            <label>Registered On</label>
             <div className="value">{new Date(profile.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
           </div>
           <div className="profile-item">
-            <label>🔄 Last Updated</label>
+            <label>Last Updated</label>
             <div className="value">{new Date(profile.updatedAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
           </div>
         </div>
 
         <div className="actions-row">
-          <Link to="/profile/edit" className="btn btn-primary">✏️ Edit Profile</Link>
-          <Link to="/documents" className="btn btn-secondary">📄 My Documents</Link>
-          <Link to="/help" className="btn btn-outline">❓ Help & FAQ</Link>
+          <Link to="/profile/edit" className="btn btn-primary">Edit Profile</Link>
+          <Link to="/documents" className="btn btn-secondary">My Documents</Link>
+          <Link to="/security-questions" className="btn btn-outline">Security Questions</Link>
+          <Link to="/change-password" className="btn btn-outline">Change Password</Link>
+          <Link to="/help" className="btn btn-outline">Help & FAQ</Link>
         </div>
       </div>
     </>

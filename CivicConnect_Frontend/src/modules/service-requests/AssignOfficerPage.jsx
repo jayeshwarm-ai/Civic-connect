@@ -77,7 +77,7 @@ export default function AssignOfficerPage() {
     setAssigning(true);
     try {
       await assignOfficerToRequest(requestId, Number(officerId));
-      toast.success('✅ Officer assigned!');
+      toast.success('Officer assigned!');
       navigate('/admin/service-requests');
     } catch (err) {
       setError(err.response?.data?.message || 'Assignment failed.');
@@ -94,33 +94,32 @@ export default function AssignOfficerPage() {
   }
 
   // Look up the currently selected officer (for the helper panel below the dropdown)
-  const selected = officers.find(o => String(o.userId) === String(officerId));
+  const selected = officers.find(o =>String(o.userId) === String(officerId));
 
   return (
     <div className="card">
       <div className="card-title">
-        <span className="icon icon-blue">👤</span> Assign Officer — Request #{req.requestId}
+        <span className="icon icon-blue"></span>Assign Officer — Request #{req.requestId}
         <span style={{ marginLeft: 'auto' }}>{badge(req.status)}</span>
       </div>
 
       {/* ── Request summary (unchanged) ─────────────────────────── */}
       <div className="profile-grid" style={{ marginBottom: 24 }}>
-        <div className="profile-item"><label>📋 Type</label><div className="value">{req.type}</div></div>
-        <div className="profile-item"><label>👤 Citizen</label><div className="value">{req.citizenName}</div></div>
-        <div className="profile-item"><label>📍 City / State</label><div className="value">{req.city || '—'}{req.state ? `, ${req.state}` : ''}</div></div>
-        <div className="profile-item" style={{ gridColumn: '1 / -1' }}><label>🏠 Address</label><div className="value">{req.address || '—'}</div></div>
-        <div className="profile-item"><label>📅 Created</label><div className="value">{new Date(req.createdAt).toLocaleString()}</div></div>
+        <div className="profile-item"><label>Type</label><div className="value">{req.type}</div></div>
+        <div className="profile-item"><label>Citizen</label><div className="value">{req.citizenName}</div></div>
+        <div className="profile-item"><label>City / State</label><div className="value">{req.city || '—'}{req.state ? `, ${req.state}` : ''}</div></div>
+        <div className="profile-item" style={{ gridColumn: '1 / -1' }}><label>Address</label><div className="value">{req.address || '—'}</div></div>
+        <div className="profile-item"><label>Created</label><div className="value">{new Date(req.createdAt).toLocaleString()}</div></div>
       </div>
       <div style={{ padding: 16, background: 'var(--gray-50)', borderRadius: 14, border: '1px solid var(--gray-100)', marginBottom: 24 }}>
         <label style={{ fontSize: '.75rem', fontWeight: 800, color: 'var(--gray-400)', textTransform: 'uppercase', letterSpacing: 1, display: 'block', marginBottom: 8 }}>Description</label>
         <p style={{ color: 'var(--gray-700)' }}>{req.description}</p>
       </div>
 
-      {error && <div className="error-msg">⚠️ {error}</div>}
+      {error && <div className="error-msg"> {error}</div>}
 
       <div className="info-tip" style={{ width: '100%', marginBottom: 20 }}>
-        <span className="tip-icon">💡</span>
-        Pick a <strong>Service Officer</strong> from the list. Only active officers are shown.
+        <span className="tip-icon"></span>Pick a <strong>Service Officer</strong> from the list. Only active officers are shown.
         {' '}Need to register a new one? <Link to="/admin/staff">Open Staff Management</Link>.
       </div>
 
@@ -134,8 +133,7 @@ export default function AssignOfficerPage() {
               &nbsp;Loading officers…
             </div>
           ) : officers.length === 0 ? (
-            <div className="error-msg" style={{ background: '#fef3c7', borderColor: '#f59e0b', color: '#92400e' }}>
-              ⚠️ No active Service Officers exist yet.
+            <div className="error-msg" style={{ background: '#fef3c7', borderColor: '#f59e0b', color: '#92400e' }}>No active Service Officers exist yet.
               {' '}<Link to="/admin/staff">Register one in Staff Management</Link> and come back.
             </div>
           ) : (
@@ -181,7 +179,7 @@ export default function AssignOfficerPage() {
 
         <div className="actions-row">
           <button className="btn btn-primary" disabled={assigning || !officerId || officers.length === 0}>
-            {assigning ? '⏳ Assigning...' : '👤 Assign Officer'}
+            {assigning ? 'Assigning...' : 'Assign Officer'}
           </button>
           <button type="button" className="btn btn-outline" onClick={() => navigate(-1)}>Cancel</button>
         </div>

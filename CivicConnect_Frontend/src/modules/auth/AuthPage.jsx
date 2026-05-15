@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { login as loginAPI, registerCitizen, resetPassword } from '../../services/api';
+import { login as loginAPI, registerCitizen,
+         forgotPasswordRequest, verifySecurityAnswers, resetPasswordWithToken,
+         getSecurityQuestions, setupSecurityAnswers } from '../../services/api';
 import { toast } from 'react-toastify';
 import { FieldError } from '../../components/ui';
 import { validate, required, email as emailRule, minLen, exactDigits, passwordStrength, dobAtLeast } from '../../utils/validators';
@@ -60,10 +62,10 @@ function getPasswordStrength(pw) {
   if (/[a-z]/.test(pw))             score++;
   if (/[0-9]/.test(pw))             score++;
   if (/[^A-Za-z0-9]/.test(pw))      score++;
-  if (score <= 2) return { label: '🔴 Weak',   color: '#dc2626', percent: 25 };
-  if (score <= 3) return { label: '🟠 Fair',   color: '#ea580c', percent: 50 };
-  if (score <= 4) return { label: '🟡 Good',   color: '#d97706', percent: 75 };
-  return            { label: '🟢 Strong', color: '#059669', percent: 100 };
+  if (score <= 2) return { label: 'Weak', color: '#dc2626', percent: 25 };
+  if (score <= 3) return { label: 'Fair', color: '#ea580c', percent: 50 };
+  if (score <= 4) return { label: 'Good', color: '#d97706', percent: 75 };
+  return { label: 'Strong', color: '#059669', percent: 100 };
 }
 
 /**
@@ -106,16 +108,14 @@ function AuthTabs({ current, onChange }) {
         aria-selected={current === 'login'}
         onClick={() => onChange('login')}
         className={`gov-auth-tab ${current === 'login' ? 'gov-auth-tab--active' : ''}`}
-      >
-        Login
+      >Login
       </button>
       <button
         role="tab"
         aria-selected={current === 'register'}
         onClick={() => onChange('register')}
         className={`gov-auth-tab ${current === 'register' ? 'gov-auth-tab--active' : ''}`}
-      >
-        Register
+      >Register
       </button>
     </div>
   );
@@ -150,8 +150,22 @@ function LoginForm({ onSwitchToRegister }) {
     try {
       const res = await loginAPI(email, password);
       loginUser(res.data);
+      if (res.data.mustChangePassword) {
+        // Admin issued a temp password. Force user to set their own before
+        // they can access anything else.
+        toast.info('You are using a temporary password. Please set a new one.');
+        navigate('/change-password?forced=1');
+        return;
+      }
       toast.success(`Welcome back, ${res.data.name}!`);
-      navigate(res.data.role === 'CITY_ADMINISTRATOR' ? '/admin' : '/profile');
+      const landingByRole = {
+        CITY_ADMINISTRATOR: '/admin',
+        DEPARTMENT_HEAD:    '/reports',
+        SERVICE_OFFICER:    '/officer/dashboard',
+        COMPLIANCE_OFFICER: '/compliance',
+        CITIZEN:            '/service-requests',
+      };
+      navigate(landingByRole[res.data.role] || '/profile');
     } catch (err) {
       const msg = err.response?.data?.message || err.response?.data?.error || 'Login failed. Check your credentials.';
       setError(msg);
@@ -165,7 +179,7 @@ function LoginForm({ onSwitchToRegister }) {
       <h2 className="gov-auth-title">Sign in to your account</h2>
       <p className="gov-auth-subtitle">Access civic services and track your requests.</p>
 
-      {error && <div className="gov-auth-error">⚠️ {error}</div>}
+      {error && <div className="gov-auth-error"> {error}</div>}
 
       <form onSubmit={handleSubmit} className="gov-auth-form" noValidate>
         <div className="form-group">
@@ -199,10 +213,8 @@ function LoginForm({ onSwitchToRegister }) {
         <button type="button" className="gov-auth-link" onClick={() => setShowForgot(v => !v)}>
           {showForgot ? 'Hide' : 'Forgot password?'}
         </button>
-        <span style={{ color: 'var(--gov-text-muted)' }}>
-          New here?{' '}
-          <button type="button" className="gov-auth-link" onClick={onSwitchToRegister}>
-            Create an account
+        <span style={{ color: 'var(--gov-text-muted)' }}>New here?{' '}
+          <button type="button" className="gov-auth-link" onClick={onSwitchToRegister}>Create an account
           </button>
         </span>
       </div>
@@ -213,99 +225,166 @@ function LoginForm({ onSwitchToRegister }) {
 }
 
 /* ───────────── Inline reset panel inside the LOGIN tab ─────────────────── */
-
+/**
+ * 3-step forgot-password flow using security questions:
+ *   1. Citizen enters email → backend returns their 3 chosen questions.
+ *   2. Citizen answers all 3 → backend issues a single-use reset token.
+ *   3. Citizen sets a new password using the token.
+ *
+ * This flow is for CITIZENS ONLY. Staff (Service Officer, Department Head,
+ * Compliance Officer) must contact a City Administrator to reset their password.
+ */
 function ForgotPasswordPanel({ onDone }) {
-  const [form, setForm]       = useState({ email: '', phone: '', newPassword: '', confirmPassword: '' });
-  const [errors, setErrors]   = useState({});
-  const [loading, setLoading] = useState(false);
-  const [error, setError]     = useState('');
-  const [success, setSuccess] = useState(false);
+  const [step, setStep]               = useState(1);
+  const [email, setEmail]             = useState('');
+  const [questions, setQuestions]     = useState([]);
+  const [answers, setAnswers]         = useState(['', '', '']);
+  const [resetToken, setResetToken]   = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPwd, setConfirmPwd]   = useState('');
+  const [loading, setLoading]         = useState(false);
+  const [error, setError]             = useState('');
+  const [success, setSuccess]         = useState(false);
 
-  const RULES = {
-    email:           [required('Email'), emailRule()],
-    phone:           [required('Phone'), exactDigits(10, 'Phone')],
-    newPassword:     [required('New Password'), passwordStrength()],
-    confirmPassword: [required('Confirm Password')],
-  };
-
-  const onChange = (e) => {
-    const next = { ...form, [e.target.name]: e.target.value };
-    setForm(next);
-    if (errors[e.target.name]) {
-      const fe = validate(next, { [e.target.name]: RULES[e.target.name] });
-      setErrors({ ...errors, [e.target.name]: fe[e.target.name] });
-    }
-  };
-
-  const handleSubmit = async (e) => {
+  // Step 1 → 2: fetch the user's questions
+  const handleStep1 = async (e) => {
     e.preventDefault();
-    const formErrors = validate(form, RULES);
-    if (!formErrors.confirmPassword && form.newPassword !== form.confirmPassword) {
-      formErrors.confirmPassword = 'Passwords do not match.';
-    }
-    setErrors(formErrors);
-    if (Object.keys(formErrors).length > 0) return;
-
     setError('');
+    if (!email.trim()) { setError('Please enter your email.'); return; }
     setLoading(true);
     try {
-      await resetPassword(form.email, form.phone, form.newPassword);
-      setSuccess(true);
-      toast.success('🔑 Password reset successful!');
+      const res = await forgotPasswordRequest(email.trim());
+      setQuestions(res.data || []);
+      setAnswers((res.data || []).map(() => ''));
+      setStep(2);
     } catch (err) {
-      setError(err.response?.data?.message || 'Reset failed. Check your email and phone.');
+      setError(err.response?.data?.message || 'Could not find your account.');
     } finally {
       setLoading(false);
     }
   };
 
-  return (
-    <div className="gov-forgot-panel">
-      <h4>Reset your password</h4>
-      <p>Verify your identity using your registered email and phone number.</p>
+  // Step 2 → 3: verify answers, receive reset token
+  const handleStep2 = async (e) => {
+    e.preventDefault();
+    setError('');
+    if (answers.some(a => !a.trim())) {
+      setError('Please answer all 3 questions.');
+      return;
+    }
+    setLoading(true);
+    try {
+      const payload = questions.map((q, i) => ({ questionId: q.questionId, answer: answers[i] }));
+      const res = await verifySecurityAnswers(email.trim(), payload);
+      setResetToken(res.data.resetToken);
+      setStep(3);
+    } catch (err) {
+      setError(err.response?.data?.message || 'One or more answers are incorrect.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
-      {error && <div className="gov-auth-error">⚠️ {error}</div>}
+  // Step 3: set new password
+  const handleStep3 = async (e) => {
+    e.preventDefault();
+    setError('');
+    if (newPassword.length < 8) { setError('Password must be at least 8 characters.'); return; }
+    if (newPassword !== confirmPwd) { setError('Passwords do not match.'); return; }
+    setLoading(true);
+    try {
+      await resetPasswordWithToken(resetToken, newPassword);
+      setSuccess(true);
+      toast.success('Password reset successful!');
+    } catch (err) {
+      setError(err.response?.data?.message || 'Reset failed. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
-      {success ? (
-        <div className="gov-auth-success">
-          ✅ Password has been reset. You can sign in now.
+  if (success) {
+    return (
+      <div className="gov-forgot-panel">
+        <div className="gov-auth-success">Password has been reset. You can sign in now.
           <div style={{ marginTop: 10 }}>
             <button type="button" className="gov-auth-link" onClick={onDone}>Close</button>
           </div>
         </div>
-      ) : (
-        <form onSubmit={handleSubmit} className="gov-auth-form" noValidate>
-          <div className="gov-auth-row">
-            <div className="form-group">
-              <label>Email Address</label>
-              <input name="email" type="email" value={form.email} onChange={onChange}
-                placeholder="you@example.com"
-                className={errors.email ? 'input-error' : ''} />
-              <FieldError message={errors.email} />
-            </div>
-            <div className="form-group">
-              <label>Phone (10 digits)</label>
-              <input name="phone" value={form.phone} onChange={onChange} maxLength={10}
-                placeholder="Registered phone"
-                className={errors.phone ? 'input-error' : ''} />
-              <FieldError message={errors.phone} />
-            </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="gov-forgot-panel">
+      <h4>Reset your password</h4>
+      <p style={{ fontSize: '.85rem', color: 'var(--gov-text-muted)' }}>
+        Citizens can reset their password by answering the 3 security questions they set during registration.
+        Staff members should contact a City Administrator.
+      </p>
+      <div style={{ display: 'flex', gap: 8, marginBottom: 12, fontSize: '.8rem', color: 'var(--gov-text-muted)' }}>
+        <span style={{ fontWeight: step === 1 ? 800 : 400 }}>1. Email</span>
+        <span>›</span>
+        <span style={{ fontWeight: step === 2 ? 800 : 400 }}>2. Answers</span>
+        <span>›</span>
+        <span style={{ fontWeight: step === 3 ? 800 : 400 }}>3. New password</span>
+      </div>
+
+      {error && <div className="gov-auth-error">{error}</div>}
+
+      {step === 1 && (
+        <form onSubmit={handleStep1} className="gov-auth-form" noValidate>
+          <div className="form-group">
+            <label>Email Address</label>
+            <input type="email" value={email} onChange={e => setEmail(e.target.value)}
+              placeholder="you@example.com" />
           </div>
-          <div className="gov-auth-row">
-            <div className="form-group">
-              <label>New Password</label>
-              <PasswordInput name="newPassword" value={form.newPassword} onChange={onChange}
-                placeholder="Min 8 characters with upper, lower, digit"
-                hasError={!!errors.newPassword} />
-              <FieldError message={errors.newPassword} />
+          <button type="submit" className="gov-auth-submit" disabled={loading}>
+            {loading ? 'Looking up…' : 'Next'}
+          </button>
+        </form>
+      )}
+
+      {step === 2 && (
+        <form onSubmit={handleStep2} className="gov-auth-form" noValidate>
+          {questions.map((q, i) => (
+            <div key={q.questionId} className="form-group">
+              <label>{i + 1}. {q.questionText}</label>
+              <input value={answers[i]}
+                onChange={e => {
+                  const next = [...answers];
+                  next[i] = e.target.value;
+                  setAnswers(next);
+                }}
+                placeholder="Your answer" />
             </div>
-            <div className="form-group">
-              <label>Confirm New Password</label>
-              <PasswordInput name="confirmPassword" value={form.confirmPassword} onChange={onChange}
-                placeholder="Re-enter new password"
-                hasError={!!errors.confirmPassword} />
-              <FieldError message={errors.confirmPassword} />
-            </div>
+          ))}
+          <p style={{ fontSize: '.75rem', color: 'var(--gov-text-muted)' }}>
+            Answers are not case-sensitive.
+          </p>
+          <button type="submit" className="gov-auth-submit" disabled={loading}>
+            {loading ? 'Verifying…' : 'Verify Answers'}
+          </button>
+          <button type="button" className="gov-auth-link"
+            style={{ marginTop: 8 }} onClick={() => { setStep(1); setError(''); }}>
+            ← Back
+          </button>
+        </form>
+      )}
+
+      {step === 3 && (
+        <form onSubmit={handleStep3} className="gov-auth-form" noValidate>
+          <div className="form-group">
+            <label>New Password</label>
+            <PasswordInput value={newPassword}
+              onChange={e => setNewPassword(e.target.value)}
+              placeholder="Min 8 characters" />
+          </div>
+          <div className="form-group">
+            <label>Confirm New Password</label>
+            <PasswordInput value={confirmPwd}
+              onChange={e => setConfirmPwd(e.target.value)}
+              placeholder="Re-enter new password" />
           </div>
           <button type="submit" className="gov-auth-submit" disabled={loading}>
             {loading ? 'Resetting…' : 'Reset Password'}
@@ -357,7 +436,7 @@ function RegisterForm({ onSwitchToLogin }) {
     setLoading(true);
     try {
       await registerCitizen(form);
-      toast.success('🎉 Registration successful! Please login to continue.');
+      toast.success('Registration successful! Please log in and set up security questions for password recovery.', { autoClose: 6000 });
       onSwitchToLogin();
       navigate('/login');
     } catch (err) {
@@ -375,7 +454,7 @@ function RegisterForm({ onSwitchToLogin }) {
       <h2 className="gov-auth-title">Citizen registration</h2>
       <p className="gov-auth-subtitle">Create your CivicConnect citizen account.</p>
 
-      {error && <div className="gov-auth-error">⚠️ {error}</div>}
+      {error && <div className="gov-auth-error"> {error}</div>}
 
       <form onSubmit={handleSubmit} className="gov-auth-form" noValidate>
         <div className="gov-auth-row">
@@ -456,8 +535,7 @@ function RegisterForm({ onSwitchToLogin }) {
       </form>
 
       <div className="gov-auth-aux" style={{ justifyContent: 'flex-end' }}>
-        <span style={{ color: 'var(--gov-text-muted)' }}>
-          Already have an account?{' '}
+        <span style={{ color: 'var(--gov-text-muted)' }}>Already have an account?{' '}
           <button type="button" className="gov-auth-link" onClick={onSwitchToLogin}>Sign in</button>
         </span>
       </div>

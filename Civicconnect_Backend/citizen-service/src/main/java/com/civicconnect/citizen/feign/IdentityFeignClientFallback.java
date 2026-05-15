@@ -48,6 +48,12 @@ public class IdentityFeignClientFallback implements IdentityFeignClient {
     }
 
     @Override
+    public void deactivateUser(Long userId) {
+        log.error("[CB] identity-service unavailable — deactivateUser({}) throwing ServiceUnavailableException", userId);
+        throw new ServiceUnavailableException("identity-service");
+    }
+
+    @Override
     public void writeAuditLog(AuditLogRequest request) {
         // Audit logs are non-critical — just log and continue (don't throw)
         log.warn("[CB] identity-service unavailable — audit log dropped: action={}", request.getAction());

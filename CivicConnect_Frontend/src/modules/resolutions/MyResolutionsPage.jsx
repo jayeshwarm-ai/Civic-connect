@@ -27,18 +27,18 @@ export default function MyResolutionsPage() {
 
   return (
     <>
-      <PageHeader icon="🔧" title="My Resolutions" subtitle="Manage resolutions and workflow steps for your assigned service requests." />
+      <PageHeader title="My Resolutions" subtitle="Manage resolutions for your assigned service requests." />
 
       <div className="stats-row">
-        <StatCard icon="📋" label="Total"       value={resolutions.length} variant="primary" />
-        <StatCard icon="🔄" label="In Progress" value={inProg}             variant="warning" />
-        <StatCard icon="✅" label="Completed"   value={completed}          variant="success" />
+        <StatCard icon="" label="Total" value={resolutions.length} variant="primary" />
+        <StatCard icon="" label="In Progress" value={inProg} variant="warning" />
+        <StatCard icon="" label="Completed" value={completed} variant="success" />
       </div>
 
       <div className="card">
-        <div className="card-title"><span className="icon icon-blue">🔧</span> Resolutions ({resolutions.length})</div>
+        <div className="card-title">Resolutions ({resolutions.length})</div>
         {resolutions.length === 0 ? (
-          <div className="empty-state"><div className="empty-icon">📭</div><h3>No resolutions yet</h3><p>Create a resolution from an assigned service request.</p></div>
+          <div className="empty-state"><h3>No resolutions yet</h3><p>Create a resolution from an assigned service request.</p></div>
         ) : (
           <div className="table-container"><table><thead><tr>
             <th>ID</th><th>Request #</th><th>Actions</th><th>Status</th><th>Created</th><th>Details</th>
@@ -50,7 +50,7 @@ export default function MyResolutionsPage() {
                 <td style={{maxWidth:250,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{r.actions}</td>
                 <td>{statusBadge(r.status)}</td>
                 <td>{new Date(r.createdAt).toLocaleDateString()}</td>
-                <td><Link to={`/resolutions/${r.resolutionId}`} className="btn btn-small btn-secondary">👁️ View</Link></td>
+                <td><Link to={`/resolutions/${r.resolutionId}`} className="btn btn-small btn-secondary">View</Link></td>
               </tr>
             ))}
           </tbody></table></div>

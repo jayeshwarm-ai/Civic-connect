@@ -12,13 +12,12 @@ export default function AboutPage() {
       <PageHeader
         title="About CivicConnect"
         subtitle="A digital bridge between citizens and the city — open, fast, and accountable."
-        icon="🏛️"
+        icon=""
       />
 
       <section className="gov-about__intro">
         <h2>Our mission</h2>
-        <p>
-          CivicConnect helps citizens raise everyday problems with their city — a broken streetlight,
+        <p>CivicConnect helps citizens raise everyday problems with their city — a broken streetlight,
           a leaking pipe, a damaged road — and follow their complaint until it is fixed. The platform
           gives elected representatives, administrators, and field officers a clear, shared view of
           what residents need, who is responsible, and how quickly things are getting done.
@@ -63,8 +62,7 @@ export default function AboutPage() {
 
       <section className="gov-about__intro" style={{ marginTop: 24, borderLeftColor: 'var(--gov-green)' }}>
         <h2>Get started</h2>
-        <p>
-          Citizens can <Link to="/login">sign in</Link> to an existing account or{' '}
+        <p>Citizens can <Link to="/login">sign in</Link> to an existing account or{' '}
           <Link to="/register">register</Link> to begin raising requests. Officials are onboarded
           by the city administrator.
         </p>

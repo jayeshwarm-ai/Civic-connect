@@ -65,7 +65,7 @@ function StaffEditProfilePage() {
     setSaving(true);
     try {
       await updateMyStaffProfile(form);
-      toast.success('✅ Profile updated.');
+      toast.success('Profile updated.');
       navigate('/profile');
     } catch (err) {
       setServerError(err.response?.data?.message || 'Update failed.');
@@ -79,18 +79,17 @@ function StaffEditProfilePage() {
   return (
     <>
       <PageHeader
-        icon="✏️"
+        icon=""
         title="Edit My Profile"
         subtitle="Update your contact details. Name and role are managed centrally."
       />
       <div className="card">
-        <div className="card-title"><span className="icon icon-blue">✏️</span> Update Contact Details</div>
+        <div className="card-title"><span className="icon icon-blue"></span>Update Contact Details</div>
 
-        {serverError && <div className="error-msg">⚠️ {serverError}</div>}
+        {serverError && <div className="error-msg"> {serverError}</div>}
 
         <div className="info-tip" style={{ width: '100%', marginBottom: 20 }}>
-          <span className="tip-icon">💡</span>
-          Only <strong>Email</strong> and <strong>Phone</strong> can be edited. Contact your administrator
+          <span className="tip-icon"></span>Only <strong>Email</strong> and <strong>Phone</strong> can be edited. Contact your administrator
           if your name or role needs to change.
         </div>
 
@@ -132,10 +131,9 @@ function StaffEditProfilePage() {
 
           <div className="actions-row">
             <button className="btn btn-primary" disabled={saving}>
-              {saving ? '⏳ Saving...' : '💾 Save Changes'}
+              {saving ? 'Saving...' : 'Save Changes'}
             </button>
-            <button type="button" className="btn btn-outline" onClick={() => navigate('/profile')}>
-              Cancel
+            <button type="button" className="btn btn-outline" onClick={() => navigate('/profile')}>Cancel
             </button>
           </div>
         </form>

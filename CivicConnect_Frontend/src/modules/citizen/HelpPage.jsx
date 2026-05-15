@@ -3,7 +3,7 @@ import { PageHeader } from '../../components/ui';
 
 const faqs = [
   {
-    category: '📋 Registration',
+    category: 'Registration',
     items: [
       {
         q: 'How do I register as a citizen?',
@@ -20,7 +20,7 @@ const faqs = [
     ]
   },
   {
-    category: '📄 Documents',
+    category: 'Documents',
     items: [
       {
         q: 'What documents do I need to upload?',
@@ -45,7 +45,7 @@ const faqs = [
     ]
   },
   {
-    category: '🔐 Account Status',
+    category: 'Account Status',
     items: [
       {
         q: 'What are the different account statuses?',
@@ -66,7 +66,7 @@ const faqs = [
     ]
   },
   {
-    category: '👤 Profile Management',
+    category: 'Profile Management',
     items: [
       {
         q: 'What profile information can I update?',
@@ -79,7 +79,7 @@ const faqs = [
     ]
   },
   {
-    category: '🆘 Troubleshooting',
+    category: 'Troubleshooting',
     items: [
       {
         q: 'I forgot my password. What should I do?',
@@ -106,14 +106,11 @@ function HelpPage() {
 
   return (
     <>
-      <PageHeader icon="❓" title="Help Center & FAQ" subtitle="Find answers to frequently asked questions about registration, documents, account status, and more." />
+      <PageHeader title="Help Center & FAQ" subtitle="Find answers to frequently asked questions about registration, documents, account status, and more." />
 
       {faqs.map((section, si) => (
         <div className="card" key={si}>
-          <div className="card-title">
-            <span className="icon icon-blue">{section.category.split(' ')[0]}</span>
-            {section.category.substring(section.category.indexOf(' ') + 1)}
-          </div>
+          <div className="card-title">{section.category}</div>
           {section.items.map((item, ii) => {
             const key = `${si}-${ii}`;
             return (
@@ -133,25 +130,22 @@ function HelpPage() {
 
       {/* Contact Info */}
       <div className="card">
-        <div className="card-title">
-          <span className="icon icon-green">📞</span>
-          Still need help?
-        </div>
+        <div className="card-title">Still need help?</div>
         <div className="profile-grid">
           <div className="profile-item">
-            <label>📧 Email Support</label>
+            <label>Email Support</label>
             <div className="value">support@civicconnect.gov</div>
           </div>
           <div className="profile-item">
-            <label>📞 Phone Support</label>
+            <label>Phone Support</label>
             <div className="value">1800-CIVIC-HELP (1800-248-4243)</div>
           </div>
           <div className="profile-item">
-            <label>🕐 Working Hours</label>
+            <label>Working Hours</label>
             <div className="value">Mon - Fri, 9:00 AM - 5:00 PM</div>
           </div>
           <div className="profile-item">
-            <label>📍 Visit Us</label>
+            <label>Visit Us</label>
             <div className="value">City Municipal Office, Main Road</div>
           </div>
         </div>
@@ -161,4 +155,3 @@ function HelpPage() {
 }
 
 export default HelpPage;
-

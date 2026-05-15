@@ -786,7 +786,7 @@ tr:hover td { background: var(--primary-bg); }
 
 .faq-item.open .faq-answer {
   padding: 16px 22px;
-  max-height: 500px;
+  max-height: 1000px;
 }
 
 /* ══ WELCOME BANNER ══════════════════════════════════════════════════════ */

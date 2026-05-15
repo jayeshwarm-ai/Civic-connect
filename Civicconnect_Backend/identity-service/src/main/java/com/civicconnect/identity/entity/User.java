@@ -40,6 +40,16 @@ public class User {
     @Column(nullable = false)
     private UserStatus status;
 
+    /**
+     * When true, the user must change their password before they can use any
+     * other functionality. Set by the admin-triggered staff password reset
+     * (the admin issues a temporary password and forces the staff member to
+     * pick their own on next login). Cleared after the user changes it.
+     */
+    @Column(nullable = false)
+    @Builder.Default
+    private boolean mustChangePassword = false;
+
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 

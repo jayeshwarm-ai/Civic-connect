@@ -53,25 +53,23 @@ public class AuthServiceImpl implements AuthService {
                 .role(user.getRole())
                 .token(token)
                 .tokenType("Bearer")
+                .mustChangePassword(user.isMustChangePassword())
                 .build();
     }
 
     @Override
     @Transactional
     public void resetPassword(ResetPasswordRequest request) {
-        User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "No account found for email: " + request.getEmail()));
-
-        if (!user.getPhone().equals(request.getPhone())) {
-            throw new InvalidOperationException("Phone number does not match our records.");
-        }
-
-        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
-        userRepository.save(user);
-
-        auditLogService.log(user.getUserId(), AuditAction.USER_STATUS_UPDATED, "USER",
-                String.valueOf(user.getUserId()), "Password reset via email + phone verification.");
+        // This legacy email+phone reset flow has been retired in favor of:
+        //   • Citizens — security-questions flow at /api/v1/auth/security/forgot-password
+        //   • Staff   — admin-triggered reset at /api/v1/auth/admin-reset-password
+        // The endpoint is kept (and still mapped in AuthController) so clients
+        // that haven't been updated yet get a clear, actionable message.
+        throw new InvalidOperationException(
+                "This password-reset flow has been retired. "
+                + "Citizens should use the 'Forgot Password' link on the login page "
+                + "(security questions). Staff should contact a City Administrator "
+                + "to reset their password.");
     }
 }
 
