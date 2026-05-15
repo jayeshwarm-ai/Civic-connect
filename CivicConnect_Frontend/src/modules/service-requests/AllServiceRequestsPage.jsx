@@ -5,7 +5,7 @@ import { toast } from 'react-toastify';
 import { PageHeader, EmptyState } from '../../components/ui';
 
 const badge = (s) => <span className={`badge badge-${s.toLowerCase()}`}>{s.replace('_',' ')}</span>;
-const typeIcon = (t) => t==='ROAD'?'🛣️':t==='WATER'?'💧':'⚡';
+
 
 // ── Status-aware empty-state copy ─────────────────────────────────────────
 // Each status has its own meaningful message. The default "No <status>
@@ -14,27 +14,27 @@ const typeIcon = (t) => t==='ROAD'?'🛣️':t==='WATER'?'💧':'⚡';
 // already been assigned" (which is good news, not an error).
 const EMPTY_BY_STATUS = {
   SUBMITTED: {
-    icon: '✅',
+    icon: '',
     title: 'Nothing waiting to be assigned',
     description: 'Every newly submitted request has already been picked up by an officer. Great work — check back later when new complaints arrive.',
   },
   ASSIGNED: {
-    icon: '🚀',
+    icon: '',
     title: 'No idle assignments',
     description: 'Every assigned request is already being worked on. Officers are on the move.',
   },
   IN_PROGRESS: {
-    icon: '🛠️',
+    icon: '',
     title: 'Nothing in progress right now',
     description: 'No requests are currently being actively worked on. Either everything is freshly assigned or already resolved.',
   },
   RESOLVED: {
-    icon: '🎯',
+    icon: '',
     title: 'No requests awaiting citizen confirmation',
     description: 'There are no resolved requests waiting for citizens to confirm closure. Once officers mark requests as resolved, they will appear here.',
   },
   CLOSED: {
-    icon: '📁',
+    icon: '',
     title: 'No closed requests yet',
     description: 'No requests have been fully resolved and closed by citizens. Closed requests show the final outcome of the service lifecycle.',
   },
@@ -58,7 +58,7 @@ export default function AllServiceRequestsPage() {
 
   return (
     <>
-      <PageHeader icon="📋" title="All Service Requests" subtitle="Filter and manage service requests. Assign officers to submitted requests." />
+      <PageHeader icon="" title="All Service Requests" subtitle="Filter and manage service requests. Assign officers to submitted requests." />
       <div className="card">
         <div style={{display:'flex',gap:8,marginBottom:24,flexWrap:'wrap'}}>
           {['SUBMITTED','ASSIGNED','IN_PROGRESS','RESOLVED','CLOSED'].map(s => (
@@ -75,7 +75,7 @@ export default function AllServiceRequestsPage() {
               <tr key={r.requestId}>
                 <td style={{fontWeight:700}}>#{r.requestId}</td>
                 <td>{r.citizenName}</td>
-                <td>{typeIcon(r.type)} {r.type}</td>
+                <td>{r.type}</td>
                 <td
                   style={{maxWidth:200,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}
                   title={`${r.address || ''}${r.address ? ', ' : ''}${r.city || ''}, ${r.state || ''}`.trim()}
@@ -87,8 +87,8 @@ export default function AllServiceRequestsPage() {
                 <td>{new Date(r.createdAt).toLocaleDateString()}</td>
                 <td>
                   <div style={{display:'flex',gap:4}}>
-                    <Link to={`/service-requests/${r.requestId}`} className="btn btn-small btn-secondary">👁️</Link>
-                    {r.status==='SUBMITTED' && <Link to={`/service-requests/${r.requestId}/assign`} className="btn btn-small btn-primary">👤 Assign</Link>}
+                    <Link to={`/service-requests/${r.requestId}`} className="btn btn-small btn-secondary">View</Link>
+                    {r.status==='SUBMITTED' && <Link to={`/service-requests/${r.requestId}/assign`} className="btn btn-small btn-primary">Assign</Link>}
                   </div>
                 </td>
               </tr>

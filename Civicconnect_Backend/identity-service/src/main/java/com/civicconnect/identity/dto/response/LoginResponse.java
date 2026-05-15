@@ -16,4 +16,10 @@ public class LoginResponse {
     private Role   role;
     private String token;
     private String tokenType;
+
+    /**
+     * When true, the user must change their password before they can use any
+     * other API. Set after an admin-triggered staff password reset.
+     */
+    private boolean mustChangePassword;
 }

@@ -5,6 +5,8 @@ import com.civicconnect.compliance.feign.dto.UserValidationResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @FeignClient(name = "identity-service", fallback = IdentityFeignClientFallback.class)
 public interface IdentityFeignClient {
 
@@ -13,4 +15,7 @@ public interface IdentityFeignClient {
 
     @PostMapping("/internal/audit-logs")
     void writeAuditLog(@RequestBody AuditLogRequest request);
+
+    @GetMapping("/internal/users/by-role")
+    List<Long> findUserIdsByRole(@RequestParam("role") String role);
 }

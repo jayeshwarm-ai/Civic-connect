@@ -7,10 +7,10 @@ import { PageHeader, StatCard } from '../../components/ui';
 const renderStars = (avg) => {
   const full = Math.floor(avg);
   const half = avg - full >= 0.5;
-  return '⭐'.repeat(full) + (half ? '⭐' : '') + '☆'.repeat(5 - full - (half ? 1 : 0));
+  return '★'.repeat(full) + (half ? '★' : '') + '☆'.repeat(5 - full - (half ? 1 : 0));
 };
 
-const medalIcon = (i) => i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i + 1}`;
+const rankLabel = (i) => `#${i + 1}`;
 
 export default function LeaderboardPage() {
   const { user } = useAuth();
@@ -40,16 +40,16 @@ export default function LeaderboardPage() {
 
   return (
     <>
-      <PageHeader icon="🏆" title="Officer Satisfaction Leaderboard" subtitle="Ranked by average citizen feedback scores across all service requests." />
+      <PageHeader icon="" title="Officer Satisfaction Leaderboard" subtitle="Ranked by average citizen feedback scores across all service requests." />
 
       {myMetric && (
         <div className="card" style={{ borderLeft: '4px solid var(--primary)' }}>
-          <div className="card-title"><span className="icon icon-blue">👤</span> Your Score</div>
+          <div className="card-title"><span className="icon icon-blue"></span>Your Score</div>
           <div className="stats-row">
-            <StatCard icon="⭐" label="Avg Score"     value={myMetric.averageScore?.toFixed(1) || '—'} variant="warning" />
-            <StatCard icon="📊" label="Total Reviews" value={myMetric.totalFeedbackCount}              variant="primary" />
+            <StatCard icon="" label="Avg Score" value={myMetric.averageScore?.toFixed(1) || '—'} variant="warning" />
+            <StatCard icon="" label="Total Reviews" value={myMetric.totalFeedbackCount} variant="primary" />
             <StatCard
-              icon="🏆"
+              icon=""
               label="Rank"
               value={`#${metrics.findIndex(m => m.officerUserId === user.userId) + 1 || '—'}`}
               variant="success"
@@ -59,10 +59,10 @@ export default function LeaderboardPage() {
       )}
 
       <div className="card">
-        <div className="card-title"><span className="icon icon-orange">🏆</span> Leaderboard ({metrics.length} Officers)</div>
+        <div className="card-title"><span className="icon icon-orange"></span>Leaderboard ({metrics.length} Officers)</div>
         {metrics.length === 0 ? (
           <div className="empty-state">
-            <div className="empty-icon">🏆</div>
+            <div className="empty-icon"></div>
             <h3>No feedback data yet</h3>
             <p>Once citizens submit feedback, officer satisfaction scores will appear here.</p>
           </div>
@@ -73,7 +73,7 @@ export default function LeaderboardPage() {
               <tbody>
                 {metrics.map((m, i) => (
                   <tr key={m.metricId} style={m.officerUserId === user.userId ? { background: 'var(--primary-bg)' } : {}}>
-                    <td style={{ fontWeight: 800, fontSize: '1.2rem' }}>{medalIcon(i)}</td>
+                    <td style={{ fontWeight: 800, fontSize: '1.2rem' }}>{rankLabel(i)}</td>
                     <td style={{ fontWeight: 700 }}>{m.officerName} <span style={{ color: 'var(--gray-400)', fontSize: '.85rem' }}>(#{m.officerUserId})</span></td>
                     <td>
                       <span style={{

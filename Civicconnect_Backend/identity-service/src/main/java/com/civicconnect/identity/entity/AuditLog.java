@@ -27,9 +27,6 @@ public class AuditLog {
     @Column(nullable = false)
     private Long performedBy;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private AuditAction action;
 
     /** Entity type affected: "USER", "CITIZEN", "SERVICE_REQUEST", etc. */
     @Column(nullable = false)
@@ -42,6 +39,10 @@ public class AuditLog {
     /** Optional context or description */
     @Column(length = 1000)
     private String detail;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 64)   // ← added length = 64
+    private AuditAction action;
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime timestamp;

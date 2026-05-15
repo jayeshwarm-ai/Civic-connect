@@ -6,7 +6,7 @@ import { PageHeader } from '../../components/ui';
 
 const resultBadge = (r) => (
   <span className={`badge ${r === 'PASS' ? 'badge-verified' : 'badge-rejected'}`} style={{ fontSize: '.85rem', padding: '8px 18px' }}>
-    {r === 'PASS' ? '✅ PASS' : '❌ FAIL'}
+    {r === 'PASS' ? 'PASS' : 'FAIL'}
   </span>
 );
 
@@ -90,7 +90,7 @@ CivicConnect Compliance System
     a.download = `compliance_record_${record.complianceId}.txt`;
     a.click();
     URL.revokeObjectURL(url);
-    toast.success('📥 Report downloaded!');
+    toast.success('Report downloaded!');
   };
 
   if (loading) return <div className="loading"><div className="spinner"></div><br />Loading...</div>;
@@ -98,52 +98,50 @@ CivicConnect Compliance System
 
   return (
     <>
-      <PageHeader icon="🛡️" title={<>Compliance Record #{record.complianceId}</>} subtitle="Detailed compliance review information" />
+      <PageHeader icon="" title={<>Compliance Record #{record.complianceId}</>} subtitle="Detailed compliance review information" />
 
       <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 24, alignItems: 'start' }}>
         <div className="card">
           <div className="card-title">
-            <span className="icon icon-blue">📋</span> Record Details
+            <span className="icon icon-blue"></span>Record Details
             <span style={{ marginLeft: 'auto' }}>{resultBadge(record.result)}</span>
           </div>
 
           <div className="profile-grid">
-            <div className="profile-item"><label>🆔 Compliance ID</label><div className="value">#{record.complianceId}</div></div>
-            <div className="profile-item"><label>📂 Type</label><div className="value">{record.type}</div></div>
-            <div className="profile-item"><label>🔗 Entity ID</label><div className="value">#{record.entityId}</div></div>
-            <div className="profile-item"><label>👮 Reviewed By</label><div className="value">{record.createdByName} (ID: #{record.createdByUserId})</div></div>
-            <div className="profile-item"><label>📅 Created</label><div className="value">{new Date(record.createdAt).toLocaleString()}</div></div>
-            <div className="profile-item"><label>📊 Result</label><div className="value">{record.result}</div></div>
+            <div className="profile-item"><label>Compliance ID</label><div className="value">#{record.complianceId}</div></div>
+            <div className="profile-item"><label>Type</label><div className="value">{record.type}</div></div>
+            <div className="profile-item"><label>Entity ID</label><div className="value">#{record.entityId}</div></div>
+            <div className="profile-item"><label>Reviewed By</label><div className="value">{record.createdByName} (ID: #{record.createdByUserId})</div></div>
+            <div className="profile-item"><label>Created</label><div className="value">{new Date(record.createdAt).toLocaleString()}</div></div>
+            <div className="profile-item"><label>Result</label><div className="value">{record.result}</div></div>
           </div>
 
           <div style={{ marginTop: 24, padding: 20, background: record.result === 'FAIL' ? '#fef2f2' : '#f0fdf4', borderRadius: 14, border: `1px solid ${record.result === 'FAIL' ? '#fecaca' : '#bbf7d0'}` }}>
-            <label style={{ fontSize: '.75rem', fontWeight: 800, color: 'var(--gray-400)', textTransform: 'uppercase', letterSpacing: 1, display: 'block', marginBottom: 8 }}>
-              📝 Findings / Notes
+            <label style={{ fontSize: '.75rem', fontWeight: 800, color: 'var(--gray-400)', textTransform: 'uppercase', letterSpacing: 1, display: 'block', marginBottom: 8 }}>Findings / Notes
             </label>
             <p style={{ fontSize: '.95rem', lineHeight: 1.7, color: 'var(--gray-700)' }}>{record.notes}</p>
           </div>
 
           {record.result === 'FAIL' && (
             <div className="info-tip" style={{ width: '100%', marginTop: 20, background: '#fef2f2', borderColor: '#fecaca', color: '#991b1b' }}>
-              <span className="tip-icon">🔔</span>
+              <span className="tip-icon"></span>
               A notification was sent to the responsible officer regarding this compliance failure.
             </div>
           )}
 
           <div className="actions-row">
             <button className="btn btn-secondary" onClick={() => navigate(-1)}>← Back</button>
-            <button className="btn btn-primary" onClick={handleDownloadReport}>📥 Download Report</button>
-            <button className="btn btn-outline" onClick={() => navigate('/compliance')}>📋 All Records</button>
+            <button className="btn btn-primary" onClick={handleDownloadReport}>Download Report</button>
+            <button className="btn btn-outline" onClick={() => navigate('/compliance')}>All Records</button>
           </div>
         </div>
 
         {/* Statistics Pie Chart */}
         <div className="card">
-          <div className="card-title"><span className="icon icon-green">📊</span> Compliance Statistics</div>
+          <div className="card-title"><span className="icon icon-green"></span>Compliance Statistics</div>
           <PieChart pass={stats.pass} fail={stats.fail} />
           <div style={{ marginTop: 16, textAlign: 'center' }}>
-            <div style={{ fontSize: '.85rem', color: 'var(--gray-500)' }}>
-              Pass Rate: <strong style={{ color: '#059669' }}>{stats.pass + stats.fail > 0 ? ((stats.pass / (stats.pass + stats.fail)) * 100).toFixed(1) : 0}%</strong>
+            <div style={{ fontSize: '.85rem', color: 'var(--gray-500)' }}>Pass Rate: <strong style={{ color: '#059669' }}>{stats.pass + stats.fail > 0 ? ((stats.pass / (stats.pass + stats.fail)) * 100).toFixed(1) : 0}%</strong>
             </div>
           </div>
         </div>

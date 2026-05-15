@@ -23,7 +23,7 @@ export function AuthProvider({ children }) {
     const userData = localStorage.getItem('user');
     if (token && userData) {
       const decoded = decodeToken(token);
-      if (decoded && decoded.exp * 1000 > Date.now()) {
+      if (decoded && decoded.exp * 1000 >Date.now()) {
         setUser(JSON.parse(userData));
       } else {
         localStorage.removeItem('token');

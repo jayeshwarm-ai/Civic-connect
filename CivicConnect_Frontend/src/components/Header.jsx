@@ -2,15 +2,22 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { getUnreadCount } from '../services/api';
+import {
+  BrandIcon, BellIcon, MenuIcon,
+  HomeIcon, UserIcon, HelpIcon, LogoutIcon,
+  DashboardIcon, RequestsIcon, DocumentsIcon, FeedbackIcon,
+  StaffIcon, ComplianceIcon, ReportsIcon, LeaderboardIcon,
+  KeyIcon, PlusCircleIcon, ClipboardCheckIcon,
+} from './icons/NavIcons';
 
 /* ═════════════════════════════════════════════════════════════════════════
    Header — Government-of-India style.
 
    Layout:
      ┌──────────────────────────────────────────────────────────────────────┐
-     │  [☰] [emblem] CivicConnect       [Help] [🔔] [Profile chip ▾]       │
+     │ [] [emblem] CivicConnect [Help] [] [Profile chip ▾] │
      └──────────────────────────────────────────────────────────────────────┘
-                ↓ click ☰
+                ↓ click
      ┌──────────────────────────────────────────────────────────────────────┐
      │  Role-specific links (Dashboard, Documents, Requests, Reports, ...) │
      └──────────────────────────────────────────────────────────────────────┘
@@ -81,7 +88,9 @@ function TopStrip() {
 function Brand() {
   return (
     <Link to="/" className="gov-brand" aria-label="CivicConnect home">
-      <div className="gov-brand__emblem" aria-hidden="true">🏛️</div>
+      <div className="gov-brand__emblem" aria-hidden="true">
+        <BrandIcon size={26} />
+      </div>
       <div>
         <div className="gov-brand__name">CivicConnect</div>
         <div className="gov-brand__tag">Citizen Services Portal</div>
@@ -103,7 +112,7 @@ function GuestNav({ isActive }) {
 function NotifBell({ count, isActive }) {
   return (
     <Link to="/notifications" className={`gov-bell ${isActive('/notifications')}`} aria-label="Notifications" title="Notifications">
-      🔔
+      <BellIcon size={20} />
       {count > 0 && <span className="gov-bell__count">{count > 9 ? '9+' : count}</span>}
     </Link>
   );
@@ -143,15 +152,13 @@ function HamburgerMenu({ user, isActive }) {
         aria-label="Open navigation menu"
         onClick={() => setOpen(v => !v)}
       >
-        <span className="gov-hamburger__icon" aria-hidden="true">
-          <span></span><span></span><span></span>
-        </span>
+        <MenuIcon size={22} />
       </button>
 
       {open && (
         <div className="gov-hamburger__menu" role="menu">
           <div className="gov-hamburger__heading">{user.role.replace(/_/g, ' ')} MENU</div>
-          {links.map(({ to, label, icon }) => (
+          {links.map(({ to, label, Icon }) => (
             <Link
               key={to}
               to={to}
@@ -159,7 +166,9 @@ function HamburgerMenu({ user, isActive }) {
               onClick={() => setOpen(false)}
               className={`gov-hamburger__item ${isActive(to)}`}
             >
-              <span className="gov-hamburger__item-icon" aria-hidden="true">{icon}</span>
+              <span className="gov-hamburger__item-icon" aria-hidden="true">
+                {Icon && <Icon size={18} />}
+              </span>
               {label}
             </Link>
           ))}
@@ -178,45 +187,44 @@ function roleLinks(role) {
   switch (role) {
     case 'CITIZEN':
       return [
-        { to: '/service-requests', label: 'My Requests',   icon: '📋' },
-        { to: '/documents',        label: 'Documents',     icon: '📄' },
-        { to: '/feedback',         label: 'Feedback',      icon: '💬' },
+        { to: '/service-requests', label: 'My Requests', Icon: RequestsIcon },
+        { to: '/documents',        label: 'Documents',   Icon: DocumentsIcon },
+        { to: '/feedback',         label: 'Feedback',    Icon: FeedbackIcon },
       ];
 
     case 'SERVICE_OFFICER':
       return [
-        { to: '/officer/dashboard',        label: 'Assignments',  icon: '🧰' },
-        { to: '/resolutions',              label: 'Resolutions',  icon: '🔧' },
-        { to: '/leaderboard',              label: 'Leaderboard',  icon: '🏆' },
-        { to: '/admin/pending-documents',  label: 'Documents',    icon: '📄' },
+        { to: '/officer/dashboard', label: 'Assignments', Icon: ClipboardCheckIcon },
+        { to: '/resolutions',       label: 'Resolutions', Icon: RequestsIcon },
+        { to: '/leaderboard',       label: 'Leaderboard', Icon: LeaderboardIcon },
       ];
 
     case 'DEPARTMENT_HEAD':
       return [
-        { to: '/admin/service-requests',   label: 'Requests',     icon: '📋' },
-        { to: '/admin/pending-documents',  label: 'Pending Docs', icon: '📄' },
-        { to: '/reports',                  label: 'Reports',      icon: '📊' },
+        { to: '/admin/service-requests', label: 'Requests', Icon: RequestsIcon },
+        { to: '/reports',                label: 'Reports',  Icon: ReportsIcon },
       ];
 
     case 'COMPLIANCE_OFFICER':
       return [
-        { to: '/compliance',              label: 'Dashboard',  icon: '🛡️' },
-        { to: '/compliance/records/new',  label: 'New Check',  icon: '➕' },
-        { to: '/compliance/audits/new',   label: 'New Audit',  icon: '🔍' },
-        { to: '/reports',                 label: 'Reports',    icon: '📊' },
+        { to: '/compliance',             label: 'Dashboard', Icon: DashboardIcon },
+        { to: '/compliance/records/new', label: 'New Check', Icon: PlusCircleIcon },
+        { to: '/compliance/audits/new',  label: 'New Audit', Icon: PlusCircleIcon },
+        { to: '/reports',                label: 'Reports',   Icon: ReportsIcon },
       ];
 
     default: // CITY_ADMINISTRATOR
       return [
-        { to: '/admin',                    label: 'Dashboard',     icon: '📊' },
-        { to: '/admin/pending-documents',  label: 'Documents',     icon: '📄' },
-        { to: '/admin/service-requests',   label: 'Requests',      icon: '📋' },
-        { to: '/admin/staff',              label: 'Staff',         icon: '👥' },
-        { to: '/compliance',               label: 'Compliance',    icon: '🛡️' },
-        { to: '/compliance/records/new',   label: 'New Check',     icon: '➕' },
-        { to: '/compliance/audits/new',    label: 'New Audit',     icon: '🔍' },
-        { to: '/leaderboard',              label: 'Leaderboard',   icon: '🏆' },
-        { to: '/reports',                  label: 'Reports',       icon: '📈' },
+        { to: '/admin',                  label: 'Dashboard',           Icon: DashboardIcon },
+        { to: '/admin/pending-documents', label: 'Documents',          Icon: DocumentsIcon },
+        { to: '/admin/service-requests', label: 'Requests',            Icon: RequestsIcon },
+        { to: '/admin/staff',            label: 'Staff',               Icon: StaffIcon },
+        { to: '/admin/reset-password',   label: 'Reset Staff Password', Icon: KeyIcon },
+        { to: '/compliance',             label: 'Compliance',          Icon: ComplianceIcon },
+        { to: '/compliance/records/new', label: 'New Check',           Icon: PlusCircleIcon },
+        { to: '/compliance/audits/new',  label: 'New Audit',           Icon: PlusCircleIcon },
+        { to: '/leaderboard',            label: 'Leaderboard',         Icon: LeaderboardIcon },
+        { to: '/reports',                label: 'Reports',             Icon: ReportsIcon },
       ];
   }
 }
@@ -247,12 +255,13 @@ function ProfileMenu({ user, onLogout }) {
   }, [open]);
 
   const initial = user.name?.charAt(0)?.toUpperCase() || '?';
-  // The role's home route — what the dashboard auto-redirect chooses.
+  // The role's dashboard — same target used by the post-login redirect.
   const roleHome =
       user.role === 'CITY_ADMINISTRATOR'  ? '/admin'
     : user.role === 'SERVICE_OFFICER'     ? '/officer/dashboard'
-    : user.role === 'DEPARTMENT_HEAD'     ? '/admin/service-requests'
+    : user.role === 'DEPARTMENT_HEAD'     ? '/reports'
     : user.role === 'COMPLIANCE_OFFICER'  ? '/compliance'
+    : user.role === 'CITIZEN'             ? '/service-requests'
     : '/profile';
 
   return (
@@ -277,8 +286,7 @@ function ProfileMenu({ user, onLogout }) {
             role="menuitem"
             onClick={() => setOpen(false)}
           >
-            <span className="gov-profile__item-icon">🏠</span>
-            Home
+            <span className="gov-profile__item-icon"><HomeIcon size={18} /></span>Home
           </Link>
           <Link
             to="/profile"
@@ -286,18 +294,18 @@ function ProfileMenu({ user, onLogout }) {
             role="menuitem"
             onClick={() => setOpen(false)}
           >
-            <span className="gov-profile__item-icon">👤</span>
-            Profile
+            <span className="gov-profile__item-icon"><UserIcon size={18} /></span>Profile
           </Link>
-          <Link
-            to="/help"
-            className="gov-profile__item"
-            role="menuitem"
-            onClick={() => setOpen(false)}
-          >
-            <span className="gov-profile__item-icon">🆘</span>
-            Help
-          </Link>
+          {user.role === 'CITIZEN' && (
+            <Link
+              to="/help"
+              className="gov-profile__item"
+              role="menuitem"
+              onClick={() => setOpen(false)}
+            >
+              <span className="gov-profile__item-icon"><HelpIcon size={18} /></span>Help
+            </Link>
+          )}
           <div className="gov-profile__divider" />
 
           {/* Logout — confirmation flow */}
@@ -307,18 +315,15 @@ function ProfileMenu({ user, onLogout }) {
               role="menuitem"
               onClick={() => setConfirmingLogout(true)}
             >
-              <span className="gov-profile__item-icon">🚪</span>
-              Logout
+              <span className="gov-profile__item-icon"><LogoutIcon size={18} /></span>Logout
             </button>
           ) : (
             <div className="gov-profile__confirm">
               <div className="gov-profile__confirm-text">Are you sure you want to logout?</div>
               <div className="gov-profile__confirm-actions">
-                <button className="btn btn-small btn-outline" onClick={() => setConfirmingLogout(false)}>
-                  Cancel
+                <button className="btn btn-small btn-outline" onClick={() => setConfirmingLogout(false)}>Cancel
                 </button>
-                <button className="btn btn-small btn-danger" onClick={() => { setOpen(false); onLogout(); }}>
-                  Yes, logout
+                <button className="btn btn-small btn-danger" onClick={() => { setOpen(false); onLogout(); }}>Yes, logout
                 </button>
               </div>
             </div>

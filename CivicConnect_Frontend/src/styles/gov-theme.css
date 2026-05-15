@@ -138,10 +138,6 @@ h1, h2, h3, .gov-serif {
   transition: background 0.15s, border-color 0.15s;
 }
 .gov-hamburger__btn:hover { background: #DCE3F2; border-color: var(--gov-navy); }
-.gov-hamburger__icon { display: inline-flex; flex-direction: column; gap: 4px; width: 18px; }
-.gov-hamburger__icon span {
-  display: block; height: 2px; background: var(--gov-navy); border-radius: 2px;
-}
 
 .gov-hamburger__menu {
   position: absolute; top: calc(100% + 10px); left: 0;
@@ -173,7 +169,12 @@ h1, h2, h3, .gov-serif {
   background: var(--gov-bg-alt); color: var(--gov-navy);
   box-shadow: inset 4px 0 0 var(--gov-saffron);
 }
-.gov-hamburger__item-icon { font-size: 1.05rem; width: 22px; text-align: center; }
+.gov-hamburger__item-icon {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 22px; height: 22px;
+  color: var(--gov-navy);
+  flex-shrink: 0;
+}
 
 /* ── Profile dropdown ───────────────────────────────────────────────── */
 .gov-profile { position: relative; }
@@ -261,7 +262,12 @@ h1, h2, h3, .gov-serif {
   transition: background 0.12s;
 }
 .gov-profile__item:hover { background: var(--gov-bg-alt); color: var(--gov-navy); }
-.gov-profile__item-icon { font-size: 1rem; width: 20px; text-align: center; }
+.gov-profile__item-icon {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 20px; height: 20px;
+  color: var(--gov-navy);
+  flex-shrink: 0;
+}
 .gov-profile__item--danger { color: #B91C1C; }
 .gov-profile__item--danger:hover { background: #FEE2E2; color: #991B1B; }
 

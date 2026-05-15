@@ -52,39 +52,30 @@ public class ResolutionServiceImpl implements ResolutionService {
 
         UserValidationResponse officer = identityFeignClient.validateUser(officerUserId);
         String officerName = officer.isExists() ? officer.getName() : "Officer#" + officerUserId;
-        String officerDisplayName = officer.isExists()
-                ? officer.getName() + " (" + formatRole(officer.getRole()) + ")"
-                : officerName;
 
         Resolution resolution = Resolution.builder()
                 .requestId(request.getRequestId()).officerUserId(officerUserId).officerName(officerName)
                 .citizenUserId(srData.getCitizenUserId()).actions(request.getActions()).build();
         resolution = resolutionRepository.save(resolution);
 
-        // Push status to service-request-service AND create an update-history row for the citizen.
-        // The note carries over the resolution plan the officer typed.
-        String createNote = "Resolution #" + resolution.getResolutionId() + " opened: " + request.getActions();
-        serviceRequestFeignClient.updateStatus(
-                request.getRequestId(),
-                StatusUpdateRequest.builder()
-                        .status("IN_PROGRESS")
-                        .officerUserId(officerUserId)
-                        .officerName(officerDisplayName)
-                        .notes(truncate(createNote, 1000))
-                        .build());
+        // NOTE: Creating a resolution does NOT change the service-request status.
+        // The resolution is the officer's internal plan; the request status is updated
+        // separately by the officer via the explicit "Update" action on the dashboard.
+        // This keeps the citizen-visible request lifecycle independent of the
+        // officer-internal resolution lifecycle.
 
         writeAuditLog(officerUserId, "RESOLUTION_CREATED", "RESOLUTION",
                 String.valueOf(resolution.getResolutionId()), "Resolution created for requestId: " + request.getRequestId());
 
         sendNotification(srData.getCitizenUserId(), request.getRequestId(),
                 resolution.getResolutionId(),
-                "A resolution has been created for your service request #" + request.getRequestId() + ". Work is now in progress.",
+                "A resolution plan has been created for your service request #" + request.getRequestId() + ".",
                 NotificationCategory.RESOLUTION);
 
         // Notify the assigned officer themselves (confirmation)
         sendNotification(officerUserId, request.getRequestId(),
                 resolution.getResolutionId(),
-                "Resolution #" + resolution.getResolutionId() + " created for Service Request #" + request.getRequestId() + ". Status: IN_PROGRESS.",
+                "Resolution #" + resolution.getResolutionId() + " created for Service Request #" + request.getRequestId() + ".",
                 NotificationCategory.RESOLUTION);
 
         return mapToResolutionResponse(resolution);
@@ -174,39 +165,21 @@ public class ResolutionServiceImpl implements ResolutionService {
             resolution.setStatus(ResolutionStatus.COMPLETED);
             resolutionRepository.save(resolution);
 
-            // Build a display name "John (Service Officer)" for the audit row.
-            // The resolution already has officerName cached, but not the role —
-            // fetch it (cheap lookup; cached fallback if identity is down).
-            String officerDisplayName = resolution.getOfficerName();
-            try {
-                UserValidationResponse officer = identityFeignClient.validateUser(resolution.getOfficerUserId());
-                if (officer.isExists() && officer.getRole() != null) {
-                    officerDisplayName = officer.getName() + " (" + formatRole(officer.getRole()) + ")";
-                }
-            } catch (Exception e) {
-                log.warn("Could not fetch officer role for audit display: {}", e.getMessage());
-            }
-
-            // Push status + audit-row payload to service-request-service.
-            String completeNote = "Resolution #" + resolution.getResolutionId() + " completed. All workflow steps done.";
-            serviceRequestFeignClient.updateStatus(
-                    resolution.getRequestId(),
-                    StatusUpdateRequest.builder()
-                            .status("RESOLVED")
-                            .officerUserId(resolution.getOfficerUserId())
-                            .officerName(officerDisplayName)
-                            .notes(completeNote)
-                            .build());
+            // NOTE: The resolution being COMPLETED does NOT auto-move the service-request
+            // to RESOLVED. The officer must explicitly click "Update" on the dashboard and
+            // enter notes to change the request status from IN_PROGRESS to RESOLVED.
+            // Resolution lifecycle (officer's plan) and request lifecycle (citizen-visible
+            // status) are independent.
 
             sendNotification(resolution.getCitizenUserId(), resolution.getRequestId(),
                     resolution.getResolutionId(),
-                    "Your service request #" + resolution.getRequestId() + " has been RESOLVED. Please confirm and close it.",
+                    "The resolution plan for your service request #" + resolution.getRequestId() + " has been completed by the officer.",
                     NotificationCategory.RESOLUTION);
 
             // Notify the resolution officer that their resolution is fully complete
             sendNotification(resolution.getOfficerUserId(), resolution.getRequestId(),
                     resolution.getResolutionId(),
-                    "Resolution #" + resolution.getResolutionId() + " marked COMPLETED. Service Request #" + resolution.getRequestId() + " is now RESOLVED.",
+                    "Resolution #" + resolution.getResolutionId() + " marked COMPLETED. All workflow steps are done. Remember to click 'Update' on the request to move it to RESOLVED for the citizen.",
                     NotificationCategory.RESOLUTION);
 
             // Compliance officers may need to audit / create a compliance record
@@ -263,28 +236,6 @@ public class ResolutionServiceImpl implements ResolutionService {
         } catch (Exception e) {
             log.warn("Failed to broadcast notification to role={}: {}", role, e.getMessage());
         }
-    }
-
-    /**
-     * Converts a raw role enum string like "SERVICE_OFFICER" into a friendly
-     * display form like "Service Officer". Used for audit row attribution.
-     */
-    private String formatRole(String role) {
-        if (role == null || role.isBlank()) return "";
-        StringBuilder out = new StringBuilder();
-        for (String word : role.split("_")) {
-            if (word.isEmpty()) continue;
-            if (out.length() > 0) out.append(' ');
-            out.append(Character.toUpperCase(word.charAt(0)));
-            if (word.length() > 1) out.append(word.substring(1).toLowerCase());
-        }
-        return out.toString();
-    }
-
-    /** Trim a string to maxLen with an ellipsis. The RequestUpdate.notes column is VARCHAR(1000). */
-    private String truncate(String s, int maxLen) {
-        if (s == null) return null;
-        return s.length() <= maxLen ? s : s.substring(0, Math.max(0, maxLen - 1)) + "…";
     }
 
     private ResolutionResponse mapToResolutionResponse(Resolution r) {

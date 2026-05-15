@@ -44,7 +44,7 @@ export default function SubmitFeedbackPage() {
     setError(''); setLoading(true);
     try {
       await submitFeedback({ requestId: Number(requestId), rating, comments: comments || null });
-      toast.success('⭐ Feedback submitted! Thank you!');
+      toast.success('Feedback submitted! Thank you!');
       navigate('/feedback');
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to submit feedback.');
@@ -57,18 +57,18 @@ export default function SubmitFeedbackPage() {
 
   return (
     <>
-      <PageHeader icon="⭐" title="Submit Feedback" subtitle={<>Rate the service for Request #{requestId}</>} />
+      <PageHeader icon="" title="Submit Feedback" subtitle={<>Rate the service for Request #{requestId}</>} />
 
       {existing ? (
         <div className="card">
-          <div className="card-title"><span className="icon icon-green">✅</span> Feedback Already Submitted</div>
+          <div className="card-title"><span className="icon icon-green"></span>Feedback Already Submitted</div>
           <div className="profile-grid">
-            <div className="profile-item"><label>⭐ Rating</label><div className="value">{'⭐'.repeat(existing.rating)}{'☆'.repeat(5 - existing.rating)} ({existing.rating}/5)</div></div>
-            <div className="profile-item"><label>📅 Date</label><div className="value">{new Date(existing.createdAt).toLocaleString()}</div></div>
+            <div className="profile-item"><label>Rating</label><div className="value">{'★'.repeat(existing.rating)}{'☆'.repeat(5 - existing.rating)} ({existing.rating}/5)</div></div>
+            <div className="profile-item"><label>Date</label><div className="value">{new Date(existing.createdAt).toLocaleString()}</div></div>
           </div>
           {existing.comments && (
             <div style={{ marginTop: 16, padding: 20, background: 'var(--gray-50)', borderRadius: 14, border: '1px solid var(--gray-100)' }}>
-              <label style={{ fontSize: '.75rem', fontWeight: 800, color: 'var(--gray-400)', textTransform: 'uppercase', letterSpacing: 1, display: 'block', marginBottom: 8 }}>💬 Comments</label>
+              <label style={{ fontSize: '.75rem', fontWeight: 800, color: 'var(--gray-400)', textTransform: 'uppercase', letterSpacing: 1, display: 'block', marginBottom: 8 }}>Comments</label>
               <p style={{ color: 'var(--gray-700)' }}>{existing.comments}</p>
             </div>
           )}
@@ -78,13 +78,13 @@ export default function SubmitFeedbackPage() {
         </div>
       ) : (
         <div className="card">
-          <div className="card-title"><span className="icon icon-orange">⭐</span> Rate Service Request #{requestId}</div>
+          <div className="card-title"><span className="icon icon-orange"></span>Rate Service Request #{requestId}</div>
 
           {request && request.status !== 'CLOSED' && (
-            <div className="error-msg">⚠️ This service request is not CLOSED yet (status: {request.status}). You can only submit feedback for closed requests.</div>
+            <div className="error-msg">This service request is not CLOSED yet (status: {request.status}). You can only submit feedback for closed requests.</div>
           )}
 
-          {error && <div className="error-msg">⚠️ {error}</div>}
+          {error && <div className="error-msg"> {error}</div>}
 
           <form onSubmit={handleSubmit}>
             {/* Star Rating */}
@@ -102,7 +102,7 @@ export default function SubmitFeedbackPage() {
                       transform: (hoverRating || rating) >= n ? 'scale(1.2)' : 'scale(1)',
                       filter: (hoverRating || rating) >= n ? 'none' : 'grayscale(1) opacity(0.4)',
                     }}>
-                    ⭐
+                    ★
                   </button>
                 ))}
                 {(hoverRating || rating) > 0 && (
@@ -124,7 +124,7 @@ export default function SubmitFeedbackPage() {
 
             <div className="actions-row">
               <button className="btn btn-primary" disabled={loading || rating === 0}>
-                {loading ? '⏳ Submitting...' : '⭐ Submit Feedback'}
+                {loading ? 'Submitting...' : 'Submit Feedback'}
               </button>
               <button type="button" className="btn btn-outline" onClick={() => navigate(-1)}>Cancel</button>
             </div>

@@ -59,18 +59,14 @@ export default function FeedbackPromptModal({ open, requestId, onClose }) {
         />
 
         <div style={{ padding: '32px 28px 24px', textAlign: 'center' }}>
-          <div style={{ fontSize: '3rem', marginBottom: 8 }} aria-hidden="true">🙏</div>
-
           <h2 style={{
             fontFamily: 'Merriweather, Georgia, serif',
             fontSize: '1.4rem', fontWeight: 800,
             color: '#0B3D91', margin: '0 0 8px',
-          }}>
-            Thank you for closing the request!
+          }}>Thank you for closing the request!
           </h2>
 
-          <p style={{ color: '#5B6478', fontSize: '0.95rem', lineHeight: 1.55, margin: '0 0 20px' }}>
-            Your feedback helps us understand what worked and what we can improve.
+          <p style={{ color: '#5B6478', fontSize: '0.95rem', lineHeight: 1.55, margin: '0 0 20px' }}>Your feedback helps us understand what worked and what we can improve.
             It only takes a minute — would you like to share it now?
           </p>
 
@@ -81,20 +77,17 @@ export default function FeedbackPromptModal({ open, requestId, onClose }) {
               onClick={goToFeedback}
               className="btn btn-primary"
               style={{ minWidth: 170 }}
-            >
-              ⭐ Share Feedback
+            >Share Feedback
             </button>
             <button
               onClick={onClose}
               className="btn btn-outline"
               style={{ minWidth: 130 }}
-            >
-              Maybe later
+            >Maybe later
             </button>
           </div>
 
-          <p style={{ marginTop: 16, fontSize: '0.78rem', color: '#94A3B8' }}>
-            You can always submit feedback from the Feedback section later.
+          <p style={{ marginTop: 16, fontSize: '0.78rem', color: '#94A3B8' }}>You can always submit feedback from the Feedback section later.
           </p>
         </div>
       </div>

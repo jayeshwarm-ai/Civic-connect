@@ -4,8 +4,8 @@ import React from 'react';
  * StatCard — reusable dashboard stat tile.
  *
  * Usage:
- *   <StatCard icon="📋" label="Total Requests" value={42} variant="primary" />
- *   <StatCard icon="✅" label="Resolved" value="12 / 18" variant="success" hint="last 30 days" />
+ * <StatCard icon="" label="Total Requests" value={42} variant="primary" />
+ * <StatCard icon="" label="Resolved" value="12 / 18" variant="success" hint="last 30 days" />
  *
  * Props:
  *   icon       — emoji or single character displayed on the left.

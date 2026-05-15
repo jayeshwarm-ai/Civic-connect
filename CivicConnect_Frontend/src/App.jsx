@@ -11,8 +11,11 @@ import Footer from './components/Footer';
 
 // ── Module imports (grouped by feature) ─────────────────────────────────
 import { LoginPage, RegisterPage, ResetPasswordPage } from './modules/auth';
+import ChangePasswordPage from './modules/auth/ChangePasswordPage';
+import SecurityQuestionsSetupPage from './modules/auth/SecurityQuestionsSetupPage';
 import { ProfilePage, ProfileEditPage, StaffProfilePage, StaffEditProfilePage, DocumentsPage, HelpPage } from './modules/citizen';
 import { AdminDashboard, CitizenDetailPage, PendingDocumentsPage, StaffManagementPage } from './modules/admin';
+import AdminResetPasswordPage from './modules/admin/AdminResetPasswordPage';
 import {
   MyServiceRequestsPage,
   SubmitServiceRequestPage,
@@ -66,6 +69,28 @@ function AppRoutes() {
           <Route path="/reset-password" element={user ? <Navigate to="/" /> : <ResetPasswordPage />} />
           <Route path="/about" element={<AboutPage />} />
 
+          {/* Change password — available to any signed-in user. Used for both
+              voluntary changes and the forced flow after an admin password reset. */}
+          <Route path="/change-password" element={
+            <PrivateRoute roles={['CITIZEN','SERVICE_OFFICER','DEPARTMENT_HEAD','COMPLIANCE_OFFICER','CITY_ADMINISTRATOR']}>
+              <ChangePasswordPage />
+            </PrivateRoute>
+          } />
+
+          {/* Security questions setup — citizens only */}
+          <Route path="/security-questions" element={
+            <PrivateRoute roles={['CITIZEN']}>
+              <SecurityQuestionsSetupPage />
+            </PrivateRoute>
+          } />
+
+          {/* Admin password reset — City Administrator only */}
+          <Route path="/admin/reset-password" element={
+            <PrivateRoute roles={['CITY_ADMINISTRATOR']}>
+              <AdminResetPasswordPage />
+            </PrivateRoute>
+          } />
+
           {/* Profile (any signed-in role) — picks citizen vs staff variant */}
           <Route path="/profile" element={<ProfileSwitcher />} />
           <Route path="/profile/edit" element={
@@ -80,7 +105,7 @@ function AppRoutes() {
             <PrivateRoute roles={['CITIZEN']}><DocumentsPage /></PrivateRoute>
           } />
           <Route path="/help" element={
-            <PrivateRoute roles={['CITIZEN','SERVICE_OFFICER','DEPARTMENT_HEAD','CITY_ADMINISTRATOR','COMPLIANCE_OFFICER']}>
+            <PrivateRoute roles={['CITIZEN']}>
               <HelpPage />
             </PrivateRoute>
           } />
@@ -102,7 +127,7 @@ function AppRoutes() {
             <PrivateRoute roles={['CITY_ADMINISTRATOR']}><CitizenDetailPage /></PrivateRoute>
           } />
           <Route path="/admin/pending-documents" element={
-            <PrivateRoute roles={['CITY_ADMINISTRATOR', 'SERVICE_OFFICER', 'DEPARTMENT_HEAD']}><PendingDocumentsPage /></PrivateRoute>
+            <PrivateRoute roles={['CITY_ADMINISTRATOR']}><PendingDocumentsPage /></PrivateRoute>
           } />
           <Route path="/admin/staff" element={
             <PrivateRoute roles={['CITY_ADMINISTRATOR']}><StaffManagementPage /></PrivateRoute>
